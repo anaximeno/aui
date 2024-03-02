@@ -5,14 +5,22 @@
 @License: BSD 3-Clause
 """
 
+import os
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 
 
 class DialogWindow(Gtk.Window):
     dialog: Gtk.Dialog
+
+    def __init__(self, *args, icon_path: str = None, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._icon_path = icon_path
+        if self._icon_path is not None and os.path.exists(self._icon_path):
+            self._icon = GdkPixbuf.Pixbuf.new_from_file(self._icon_path)
+            self.set_icon(self._icon)
 
     def run(self):
         return self.dialog.run()
@@ -23,8 +31,13 @@ class DialogWindow(Gtk.Window):
 
 
 class InfoDialogWindow(DialogWindow):
-    def __init__(self, message: str, title: str = None) -> None:
-        super().__init__(title=title)
+    def __init__(
+        self,
+        message: str,
+        title: str = None,
+        window_icon_path: str = "icon.png",
+    ) -> None:
+        super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = Gtk.MessageDialog(
             flags=0,
             transient_for=self,
@@ -43,8 +56,9 @@ class QuestionDialogWindow(DialogWindow):
         self,
         message: str,
         title: str = None,
+        window_icon_path: str = "icon.png",
     ) -> None:
-        super().__init__(title=title)
+        super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = Gtk.MessageDialog(
             flags=0,
             transient_for=self,
@@ -105,8 +119,9 @@ class EntryDialogWindow(DialogWindow):
         title: str = None,
         label: str = None,
         default_text: str = "",
+        window_icon_path: str = "icon.png",
     ) -> None:
-        super().__init__(title=title)
+        super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = EntryDialog(
             flags=0,
             transient_for=self,

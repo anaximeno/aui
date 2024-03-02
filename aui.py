@@ -2,7 +2,7 @@
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
 @Version: 0.1
-@License: TODO
+@License: BSD 3-Clause
 """
 
 import gi

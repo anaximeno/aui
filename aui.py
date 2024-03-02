@@ -35,7 +35,7 @@ class InfoDialogWindow(DialogWindow):
         self,
         message: str,
         title: str = None,
-        window_icon_path: str = "icon.png",
+        window_icon_path: str = None,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = Gtk.MessageDialog(
@@ -56,7 +56,7 @@ class QuestionDialogWindow(DialogWindow):
         self,
         message: str,
         title: str = None,
-        window_icon_path: str = "icon.png",
+        window_icon_path: str = None,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = Gtk.MessageDialog(
@@ -119,7 +119,7 @@ class EntryDialogWindow(DialogWindow):
         title: str = None,
         label: str = None,
         default_text: str = "",
-        window_icon_path: str = "icon.png",
+        window_icon_path: str = None,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = EntryDialog(

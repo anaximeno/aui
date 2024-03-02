@@ -73,6 +73,8 @@ class EntryDialog(Gtk.Dialog):
         title: str = None,
         label: str = None,
         default_text: str = "",
+        width: int = 360,
+        height: int = 120,
         **kwargs,
     ):
         super().__init__(title=title, **kwargs)
@@ -82,18 +84,18 @@ class EntryDialog(Gtk.Dialog):
             Gtk.STOCK_OK,
             Gtk.ResponseType.OK,
         )
-        self._box = Gtk.HBox()
+        self._box = Gtk.HBox(spacing=5)
 
         if label is not None:
             self._label = Gtk.Label(label=label)
-            self._box.pack_start(self._label, False, False, 0)
+            self._box.pack_start(self._label, False, False, 5)
 
         self.entry = Gtk.Entry(text=default_text)
-        self._box.pack_start(self.entry, True, True, 0)
+        self._box.pack_start(self.entry, True, True, 2)
 
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
-        self.set_default_size(150, 100)
+        self.set_default_size(width, height)
         self.show_all()
 
 

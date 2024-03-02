@@ -12,6 +12,22 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf
 
 
+def get_action_icon_path(uuid: str) -> str:
+    """Returns the path of the `icon.png` file of the action.
+
+    #### Params:
+
+    - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png`
+              file. Please note that if the action is installed the `test-spice` script, you'll
+              have to prepend a `devtest-` to the uuid for it to return the correct location of the
+              icon file.
+    """
+    ACTIONS_DIR = ".local/share/nemo/actions"
+    ICON_FILENAME = "icon.png"
+    HOME = os.path.expanduser("~")
+    return os.path.join(HOME, ACTIONS_DIR, uuid, ICON_FILENAME)
+
+
 class DialogWindow(Gtk.Window):
     dialog: Gtk.Dialog
 

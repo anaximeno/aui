@@ -281,6 +281,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
     def __init__(
         self,
         radio_buttons: Iterable[RadioChoiceButton],
+        default_active_button_id: str = None,
         radio_spacing: float = 5,
         radio_orientation=Gtk.Orientation.VERTICAL,
         title: str = None,
@@ -301,6 +302,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
         self.radio_buttons = radio_buttons
         self._radio_buttons_spacing = radio_spacing
         self._radio_orientation = radio_orientation
+        self._default_active_button_id = default_active_button_id
 
         self._box = Gtk.VBox(spacing=0)
 
@@ -319,11 +321,17 @@ class _RadioChoiceDialog(Gtk.Dialog):
             first_button = self.radio_buttons[0]
             first_gtk_btn = first_button.create_gtk_button(None)
 
+            if first_button.id == self._default_active_button_id:
+                first_gtk_btn.set_active(True)
+
             self._radio_box.pack_start(first_gtk_btn, False, False, 0)
 
             for radio_button in self.radio_buttons[1:]:
-                btn = radio_button.create_gtk_button(first_gtk_btn)
-                self._radio_box.pack_start(btn, False, False, 0)
+                gtk_btn = radio_button.create_gtk_button(first_gtk_btn)
+                self._radio_box.pack_start(gtk_btn, False, False, 0)
+
+                if radio_button.id == self._default_active_button_id:
+                    gtk_btn.set_active(True)
 
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
@@ -338,6 +346,7 @@ class RadioChoiceDialogWindow(DialogWindow):
     def __init__(
         self,
         radio_buttons: Iterable[RadioChoiceButton],
+        default_active_button_id: str = None,
         radio_spacing: float = 5,
         radio_orientation=VERTICAL_RADIO,
         title: str = None,
@@ -351,6 +360,7 @@ class RadioChoiceDialogWindow(DialogWindow):
             flags=0,
             transient_for=self,
             radio_buttons=radio_buttons,
+            default_active_button_id=default_active_button_id,
             radio_spacing=radio_spacing,
             radio_orientation=radio_orientation,
             title=title,

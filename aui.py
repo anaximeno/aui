@@ -205,6 +205,7 @@ class InfiniteProgressbarDialogWindow(DialogWindow):
         self._active = True
 
     def run(self):
+        self._active = True
         self._timeout_id = GLib.timeout_add(50, self._on_timeout, None)
         return super().run()
 

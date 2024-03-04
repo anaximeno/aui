@@ -9,7 +9,7 @@ import os
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GdkPixbuf
+from gi.repository import Gtk, GdkPixbuf, GLib
 
 
 def get_action_icon_path(uuid: str) -> str:
@@ -136,6 +136,8 @@ class EntryDialogWindow(DialogWindow):
         label: str = None,
         default_text: str = "",
         window_icon_path: str = None,
+        width: int = 360,
+        height: int = 120,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = _EntryDialog(
@@ -144,6 +146,8 @@ class EntryDialogWindow(DialogWindow):
             title=title,
             label=label,
             default_text=default_text,
+            width=width,
+            height=height,
         )
 
     def run(self):
@@ -152,3 +156,65 @@ class EntryDialogWindow(DialogWindow):
         if response == Gtk.ResponseType.OK:
             return self.dialog.entry.get_text()
         return None
+
+
+class _InfiniteProgressbarDialog(Gtk.Dialog):
+    def __init__(
+        self,
+        title: str = None,
+        message: str = None,
+        width: int = 360,
+        height: int = 120,
+        **kwargs,
+    ):
+        super().__init__(title=title, **kwargs)
+        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.progressbar = Gtk.ProgressBar()
+
+        if message:
+            self.progressbar.set_text(message)
+            self.progressbar.set_show_text(True)
+
+        self.progressbar.pulse()
+
+        self._content_area = self.get_content_area()
+        self._content_area.add(self.progressbar)
+        self.set_default_size(width, height)
+        self.show_all()
+
+
+class InfiniteProgressbarDialogWindow(DialogWindow):
+    def __init__(
+        self,
+        title: str = None,
+        message: str = None,
+        window_icon_path: str = None,
+        width: int = 360,
+        height: int = 120,
+    ) -> None:
+        super().__init__(title=title, icon_path=window_icon_path)
+        self.dialog = _InfiniteProgressbarDialog(
+            flags=0,
+            transient_for=self,
+            title=title,
+            message=message,
+            width=width,
+            height=height,
+        )
+        self._timeout_id = None
+        self._active = True
+
+    def run(self):
+        self._timeout_id = GLib.timeout_add(50, self._on_timeout, None)
+        return super().run()
+
+    def _on_timeout(self, user_data) -> bool:
+        self.dialog.progressbar.pulse()
+        return self._active
+
+    def stop(self):
+        self._active = False
+
+    def destroy(self):
+        self.stop()
+        super().destroy()

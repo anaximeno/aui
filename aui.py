@@ -10,6 +10,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf, GLib
+from typing import Iterable
 
 
 def get_action_icon_path(uuid: str) -> str:
@@ -219,3 +220,123 @@ class InfiniteProgressbarDialogWindow(DialogWindow):
     def destroy(self):
         self.stop()
         super().destroy()
+
+
+class RadioChoiceButton:
+    def __init__(self, id: str, label: str, on_toggled_cb=None) -> None:
+        self._id = id
+        self._label = label
+        self._on_toggled_cb = on_toggled_cb
+        self._gtk_button = None
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @property
+    def label(self) -> str:
+        return self._label
+
+    @property
+    def gtk_button(self) -> Gtk.RadioButton | None:
+        return self._gtk_button
+
+    def create_gtk_button(self, from_widget=None) -> Gtk.RadioButton:
+        self._gtk_button = Gtk.RadioButton.new_with_label_from_widget(
+            from_widget, self._label
+        )
+        if self._on_toggled_cb is not None:
+            self._gtk_button.connect("toggled", self._on_toggled_cb, self._id)
+        return self._gtk_button
+
+
+class _RadioChoiceDialog(Gtk.Dialog):
+    def __init__(
+        self,
+        radio_buttons: Iterable[RadioChoiceButton],
+        radio_spacing: float = 5,
+        radio_orientation=Gtk.Orientation.VERTICAL,
+        title: str = None,
+        label: str = None,
+        width: int = 360,
+        height: int = 120,
+        **kwargs,
+    ):
+        super().__init__(title=title, **kwargs)
+
+        self.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OK,
+            Gtk.ResponseType.OK,
+        )
+
+        self.radio_buttons = radio_buttons
+        self._radio_buttons_spacing = radio_spacing
+        self._radio_orientation = radio_orientation
+
+        self._box = Gtk.VBox(spacing=0)
+
+        if label is not None:
+            self._label = Gtk.Label(label=label, xalign=0)
+            self._box.pack_start(self._label, False, False, 5)
+
+        self._radio_box = Gtk.Box(
+            spacing=self._radio_buttons_spacing,
+            orientation=self._radio_orientation,
+        )
+
+        self._box.pack_start(self._radio_box, True, True, 0)
+
+        if any(self.radio_buttons):
+            first_button = self.radio_buttons[0]
+            first_gtk_btn = first_button.create_gtk_button(None)
+
+            self._radio_box.pack_start(first_gtk_btn, False, False, 0)
+
+            for radio_button in self.radio_buttons[1:]:
+                btn = radio_button.create_gtk_button(first_gtk_btn)
+                self._radio_box.pack_start(btn, False, False, 0)
+
+        self._content_area = self.get_content_area()
+        self._content_area.add(self._box)
+        self.set_default_size(width, height)
+        self.show_all()
+
+
+class RadioChoiceDialogWindow(DialogWindow):
+    VERTICAL_RADIO = Gtk.Orientation.VERTICAL
+    HORIZONTAL_RADIO = Gtk.Orientation.HORIZONTAL
+
+    def __init__(
+        self,
+        radio_buttons: Iterable[RadioChoiceButton],
+        radio_spacing: float = 5,
+        radio_orientation=VERTICAL_RADIO,
+        title: str = None,
+        label: str = None,
+        window_icon_path: str = None,
+        width: int = 360,
+        height: int = 120,
+    ) -> None:
+        super().__init__(title=title, icon_path=window_icon_path)
+        self.dialog = _RadioChoiceDialog(
+            flags=0,
+            transient_for=self,
+            radio_buttons=radio_buttons,
+            radio_spacing=radio_spacing,
+            radio_orientation=radio_orientation,
+            title=title,
+            label=label,
+            width=width,
+            height=height,
+        )
+
+    def run(self) -> str | None:
+        """Returns the choice button `id` if user clicked ok, else returns None."""
+        response = super().run()
+        if response == Gtk.ResponseType.OK:
+            for btn in self.dialog.radio_buttons:
+                if btn.gtk_button.get_active():
+                    return btn.id
+        return None

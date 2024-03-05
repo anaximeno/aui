@@ -37,7 +37,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf, GLib
-from typing import Iterable
+from typing import Iterable, Callable
 
 
 def get_action_icon_path(uuid: str) -> str:
@@ -219,8 +219,12 @@ class InfiniteProgressbarDialogWindow(DialogWindow):
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,
+        update_timeout_in_ms: int = 50,
+        on_update_cb: Callable = None,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
+        self._update_timeout = update_timeout_in_ms
+        self._on_update_cb = on_update_cb
         self.dialog = _InfiniteProgressbarDialog(
             flags=0,
             transient_for=self,
@@ -234,15 +238,24 @@ class InfiniteProgressbarDialogWindow(DialogWindow):
 
     def run(self):
         self._active = True
-        self._timeout_id = GLib.timeout_add(50, self._on_timeout, None)
+        self._timeout_id = GLib.timeout_add(
+            self._update_timeout,
+            self._on_timeout,
+            None,
+        )
         return super().run()
 
     def _on_timeout(self, user_data) -> bool:
+        if self._on_update_cb is not None:
+            self._on_update_cb(user_data)
         self.dialog.progressbar.pulse()
         return self._active
 
     def stop(self):
         self._active = False
+        if self._timeout_id is not None:
+            GLib.source_remove(self._timeout_id)
+            self._timeout_id = None
 
     def destroy(self):
         self.stop()
@@ -250,7 +263,7 @@ class InfiniteProgressbarDialogWindow(DialogWindow):
 
 
 class RadioChoiceButton:
-    def __init__(self, id: str, label: str, on_toggled_cb=None) -> None:
+    def __init__(self, id: str, label: str, on_toggled_cb: Callable = None) -> None:
         self._id = id
         self._label = label
         self._on_toggled_cb = on_toggled_cb

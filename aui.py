@@ -210,7 +210,7 @@ class EntryDialogWindow(DialogWindow):
         return None
 
 
-class _InfiniteProgressbarDialog(Gtk.Dialog):
+class _ProgressbarDialog(Gtk.Dialog):
     def __init__(
         self,
         title: str = None,
@@ -227,29 +227,27 @@ class _InfiniteProgressbarDialog(Gtk.Dialog):
             self.progressbar.set_text(message)
             self.progressbar.set_show_text(True)
 
-        self.progressbar.pulse()
-
         self._content_area = self.get_content_area()
         self._content_area.add(self.progressbar)
         self.set_default_size(width, height)
         self.show_all()
 
 
-class InfiniteProgressbarDialogWindow(DialogWindow):
+class ProgressbarDialogWindow(DialogWindow):
     def __init__(
         self,
+        timeout_callback: Callable,
+        timeout_ms: int = 50,
         title: str = None,
         message: str = None,
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,
-        update_timeout_in_ms: int = 50,
-        on_update_cb: Callable = None,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
-        self._update_timeout = update_timeout_in_ms
-        self._on_update_cb = on_update_cb
-        self.dialog = _InfiniteProgressbarDialog(
+        self._timeout_ms = timeout_ms
+        self._timeout_callback = timeout_callback
+        self.dialog = _ProgressbarDialog(
             flags=0,
             transient_for=self,
             title=title,
@@ -260,19 +258,22 @@ class InfiniteProgressbarDialogWindow(DialogWindow):
         self._timeout_id = None
         self._active = True
 
+    @property
+    def progressbar(self) -> Gtk.ProgressBar:
+        return self.dialog.progressbar
+
     def run(self):
         self._active = True
         self._timeout_id = GLib.timeout_add(
-            self._update_timeout,
-            self._on_timeout,
+            self._timeout_ms,
+            self._handle_on_timeout,
             None,
         )
         return super().run()
 
-    def _on_timeout(self, user_data) -> bool:
-        if self._on_update_cb is not None:
-            self._on_update_cb(user_data)
-        self.dialog.progressbar.pulse()
+    def _handle_on_timeout(self, user_data) -> bool:
+        if self._active:
+            self._active = self._timeout_callback(user_data, self.progressbar)
         return self._active
 
     def stop(self):

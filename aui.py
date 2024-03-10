@@ -74,22 +74,46 @@ class DialogWindow(Gtk.Window):
         super().destroy()
 
 
+class _InfoDialog(Gtk.Dialog):
+    def __init__(
+        self,
+        *args,
+        message: str,
+        title: str = None,
+        width: int,
+        height: int,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, title=title, **kwargs)
+        self.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self._box = Gtk.VBox()
+        self.label = Gtk.Label()
+        self.label.set_markup(message)
+        self._box.pack_start(self.label, True, True, 0)
+        self._content_area = self.get_content_area()
+        self._content_area.add(self._box)
+        self.set_default_size(width, height)
+        self.show_all()
+
+
 class InfoDialogWindow(DialogWindow):
     def __init__(
         self,
         message: str,
         title: str = None,
         window_icon_path: str = None,
+        width: int = 360,
+        height: int = 120,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
-        self.dialog = Gtk.MessageDialog(
+        self.dialog = _InfoDialog(
             flags=0,
             transient_for=self,
             title=title,
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
+            message=message,
+            width=width,
+            height=height,
         )
-        self.dialog.format_secondary_text(message)
 
 
 class QuestionDialogWindow(DialogWindow):

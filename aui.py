@@ -216,7 +216,7 @@ class _ProgressbarDialog(Gtk.Dialog):
         title: str = None,
         message: str = None,
         expander_label: str = None,
-        expanded_content: str = None,
+        expanded_text: str = None,
         width: int = 360,
         height: int = 120,
         **kwargs,
@@ -234,8 +234,8 @@ class _ProgressbarDialog(Gtk.Dialog):
 
         if expander_label:
             self.expander = Gtk.Expander(label=expander_label)
-            self.expanded_content = Gtk.Label(label=expanded_content)
-            self.expander.add(self.expanded_content)
+            self.expanded_text = Gtk.Label(label=expanded_text)
+            self.expander.add(self.expanded_text)
             self.box.pack_start(self.expander, True, True, 0)
 
         self._content_area = self.get_content_area()
@@ -252,7 +252,7 @@ class ProgressbarDialogWindow(DialogWindow):
         title: str = None,
         message: str = None,
         expander_label: str = None,
-        expanded_content: str = None,
+        expanded_text: str = None,
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,
@@ -268,7 +268,7 @@ class ProgressbarDialogWindow(DialogWindow):
             width=width,
             height=height,
             expander_label=expander_label,
-            expanded_content=expanded_content,
+            expanded_text=expanded_text,
         )
         self._timeout_id = None
         self._active = True

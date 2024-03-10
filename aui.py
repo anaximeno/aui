@@ -215,20 +215,31 @@ class _ProgressbarDialog(Gtk.Dialog):
         self,
         title: str = None,
         message: str = None,
+        expander_label: str = None,
+        expanded_content: str = None,
         width: int = 360,
         height: int = 120,
         **kwargs,
     ):
         super().__init__(title=title, **kwargs)
         self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.box = Gtk.VBox(spacing=15)
         self.progressbar = Gtk.ProgressBar()
 
         if message:
             self.progressbar.set_text(message)
             self.progressbar.set_show_text(True)
 
+        self.box.pack_start(self.progressbar, True, True, 0)
+
+        if expander_label:
+            self.expander = Gtk.Expander(label=expander_label)
+            self.expanded_content = Gtk.Label(label=expanded_content)
+            self.expander.add(self.expanded_content)
+            self.box.pack_start(self.expander, True, True, 0)
+
         self._content_area = self.get_content_area()
-        self._content_area.add(self.progressbar)
+        self._content_area.add(self.box)
         self.set_default_size(width, height)
         self.show_all()
 
@@ -240,6 +251,8 @@ class ProgressbarDialogWindow(DialogWindow):
         timeout_ms: int = 50,
         title: str = None,
         message: str = None,
+        expander_label: str = None,
+        expanded_content: str = None,
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,
@@ -254,6 +267,8 @@ class ProgressbarDialogWindow(DialogWindow):
             message=message,
             width=width,
             height=height,
+            expander_label=expander_label,
+            expanded_content=expanded_content,
         )
         self._timeout_id = None
         self._active = True
@@ -273,7 +288,8 @@ class ProgressbarDialogWindow(DialogWindow):
 
     def _handle_on_timeout(self, user_data) -> bool:
         if self._active:
-            self._active = self._timeout_callback(user_data, self.progressbar)
+            res = self._timeout_callback(user_data, self)
+            self._active = res if res is not None else True
         return self._active
 
     def stop(self):

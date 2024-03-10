@@ -1,7 +1,7 @@
 """Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
-@Version: 0.2
+@Version: 0.3
 @License: BSD 3-Clause License
 
 Copyright (c) 2024, Anaxímeno Brito

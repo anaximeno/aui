@@ -203,6 +203,7 @@ class EntryDialogWindow(DialogWindow):
             width=width,
             height=height,
         )
+        self.dialog.entry.connect("activate", self.on_entry_activate)
 
     def run(self):
         """Returns entry text if user clicked ok, else returns None."""
@@ -210,6 +211,9 @@ class EntryDialogWindow(DialogWindow):
         if response == Gtk.ResponseType.OK:
             return self.dialog.entry.get_text()
         return None
+
+    def on_entry_activate(self, entry):
+        self.dialog.emit("response", Gtk.ResponseType.OK)
 
 
 class _ProgressbarDialog(Gtk.Dialog):
@@ -357,8 +361,8 @@ class _RadioChoiceDialog(Gtk.Dialog):
 
         self.radio_buttons = radio_buttons
         self._radio_buttons_spacing = radio_spacing
-        self._radio_orientation = radio_orientation
         self._default_active_button_id = default_active_button_id
+        self._radio_orientation = radio_orientation
 
         self._box = Gtk.VBox(spacing=0)
 
@@ -392,6 +396,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
 
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
+
         self.set_default_size(width, height)
         self.show_all()
 

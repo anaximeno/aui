@@ -1,7 +1,7 @@
 """Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
-@Version: 0.3
+@Version: 0.4
 @License: BSD 3-Clause License
 
 Copyright (c) 2024, Anaxímeno Brito
@@ -40,20 +40,24 @@ from gi.repository import Gtk, GdkPixbuf, GLib
 from typing import Iterable, Callable
 
 
+HOME = os.path.expanduser("~")
+
+ACTIONS_DIR = ".local/share/nemo/actions"
+ICON_FILENAME = "icon.png"
+
+
 def get_action_icon_path(uuid: str) -> str:
     """Returns the path of the `icon.png` file of the action.
 
     #### Params:
 
-    - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png`
-              file. Please note that if the action is installed the `test-spice` script, you'll
-              have to prepend a `devtest-` to the uuid for it to return the correct location of the
-              icon file.
+    - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png` file.
     """
-    ACTIONS_DIR = ".local/share/nemo/actions"
-    ICON_FILENAME = "icon.png"
-    HOME = os.path.expanduser("~")
-    return os.path.join(HOME, ACTIONS_DIR, uuid, ICON_FILENAME)
+    icon_path = os.path.join(HOME, ACTIONS_DIR, uuid, ICON_FILENAME)
+    dev_icon_path = os.path.join(HOME, ACTIONS_DIR, "devtest-" + uuid, ICON_FILENAME)
+    if os.path.exists(dev_icon_path) and not os.path.exists(icon_path):
+        return dev_icon_path
+    return icon_path
 
 
 class DialogWindow(Gtk.Window):

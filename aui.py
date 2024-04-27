@@ -46,17 +46,23 @@ ACTIONS_DIR = ".local/share/nemo/actions"
 ICON_FILENAME = "icon.png"
 
 
-def get_action_icon_path(uuid: str) -> str:
+def get_action_icon_path(uuid: str, use_dev_icon_if_found = None) -> str:
     """Returns the path of the `icon.png` file of the action.
 
     #### Params:
 
-    - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png` file.
+    - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png` file
+    - `use_dev_icon_if_found`: whether to use or not dev icon even if the action icon existe (useful when
+        the dev action and the normal action instances are both installed)
     """
     icon_path = os.path.join(HOME, ACTIONS_DIR, uuid, ICON_FILENAME)
     dev_icon_path = os.path.join(HOME, ACTIONS_DIR, "devtest-" + uuid, ICON_FILENAME)
-    if os.path.exists(dev_icon_path) and not os.path.exists(icon_path):
+
+    if os.path.exists(dev_icon_path) and (
+        not os.path.exists(icon_path) or use_dev_icon_if_found is True
+    ):
         return dev_icon_path
+
     return icon_path
 
 
@@ -175,7 +181,6 @@ class _EntryDialog(Gtk.Dialog):
         if label is not None:
             self._label = Gtk.Label(xalign=0)
             self._label.set_markup(label)
-
             self._box.pack_start(self._label, False, False, 5)
 
         self.entry = Gtk.Entry(text=default_text)

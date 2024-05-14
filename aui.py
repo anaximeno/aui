@@ -1,7 +1,7 @@
 """Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
-@Version: 0.4
+@Version: 0.5
 @License: BSD 3-Clause License
 
 Copyright (c) 2024, Anaxímeno Brito
@@ -247,10 +247,12 @@ class _ProgressbarDialog(Gtk.Dialog):
 
         self.box.pack_start(self.progressbar, True, True, 0)
 
+        self.expander = None
+        self.expanded_text_label = None
         if expander_label:
             self.expander = Gtk.Expander(label=expander_label)
-            self.expanded_text = Gtk.Label(label=expanded_text)
-            self.expander.add(self.expanded_text)
+            self.expanded_text_label = Gtk.Label(label=expanded_text)
+            self.expander.add(self.expanded_text_label)
             self.box.pack_start(self.expander, True, True, 0)
 
         self._content_area = self.get_content_area()
@@ -316,6 +318,10 @@ class ProgressbarDialogWindow(DialogWindow):
     def destroy(self):
         self.stop()
         super().destroy()
+
+    def set_expanded_text(self, text: str):
+        if self.dialog.expanded_text_label is not None:
+            self.dialog.expanded_text_label.set_markup(text)
 
 
 class RadioChoiceButton:

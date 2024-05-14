@@ -104,6 +104,8 @@ class _InfoDialog(Gtk.Dialog):
         self.label.set_margin_bottom(10)
         self.label.set_margin_start(10)
         self.label.set_margin_end(10)
+        self.label.set_halign(Gtk.Align.CENTER)
+        self.label.set_valign(Gtk.Align.CENTER)
         self.label.set_markup(message)
 
         self._box.pack_start(self.label, True, True, 0)

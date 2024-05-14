@@ -115,6 +115,9 @@ class _InfoDialog(Gtk.Dialog):
             self.expander = Gtk.Expander(label=expander_label)
             self.expanded_text_label = Gtk.Label()
             self.expanded_text_label.set_markup(expanded_text)
+            self.expanded_text_label.set_halign(Gtk.Align.START)
+            self.expanded_text_label.set_margin_top(5)
+            self.expanded_text_label.set_margin_start(10)
             self.expander.add(self.expanded_text_label)
             self._box.pack_start(self.expander, True, True, 10)
 
@@ -286,6 +289,9 @@ class _ProgressbarDialog(Gtk.Dialog):
             self.expander.set_margin_end(5)
             self.expanded_text_label = Gtk.Label()
             self.expanded_text_label.set_markup(expanded_text)
+            self.expanded_text_label.set_halign(Gtk.Align.START)
+            self.expanded_text_label.set_margin_top(5)
+            self.expanded_text_label.set_margin_start(10)
             self.expander.add(self.expanded_text_label)
             self.box.pack_start(self.expander, True, True, 0)
 

@@ -46,7 +46,7 @@ ACTIONS_DIR = ".local/share/nemo/actions"
 ICON_FILENAME = "icon.png"
 
 
-def get_action_icon_path(uuid: str, use_dev_icon_if_found = None) -> str:
+def get_action_icon_path(uuid: str, use_dev_icon_if_found=None) -> str:
     """Returns the path of the `icon.png` file of the action.
 
     #### Params:
@@ -92,6 +92,8 @@ class _InfoDialog(Gtk.Dialog):
         title: str = None,
         width: int,
         height: int,
+        expander_label: str = "",
+        expanded_text: str = "",
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
@@ -100,6 +102,17 @@ class _InfoDialog(Gtk.Dialog):
         self.label = Gtk.Label()
         self.label.set_markup(message)
         self._box.pack_start(self.label, True, True, 0)
+
+        self.expander_label = None
+        self.expanded_text = None
+
+        if expander_label:
+            self.expander = Gtk.Expander(label=expander_label)
+            self.expanded_text_label = Gtk.Label()
+            self.expanded_text_label.set_markup(expanded_text)
+            self.expander.add(self.expanded_text_label)
+            self._box.pack_start(self.expander, True, True, 10)
+
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
         self.set_default_size(width, height)
@@ -114,6 +127,8 @@ class InfoDialogWindow(DialogWindow):
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,
+        expander_label: str = "",
+        expanded_text: str = "",
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
         self.dialog = _InfoDialog(
@@ -123,6 +138,8 @@ class InfoDialogWindow(DialogWindow):
             message=message,
             width=width,
             height=height,
+            expander_label=expander_label,
+            expanded_text=expanded_text,
         )
 
 
@@ -230,8 +247,8 @@ class _ProgressbarDialog(Gtk.Dialog):
         self,
         title: str = None,
         message: str = None,
-        expander_label: str = None,
-        expanded_text: str = None,
+        expander_label: str = "",
+        expanded_text: str = "",
         width: int = 360,
         height: int = 120,
         **kwargs,
@@ -251,7 +268,8 @@ class _ProgressbarDialog(Gtk.Dialog):
         self.expanded_text_label = None
         if expander_label:
             self.expander = Gtk.Expander(label=expander_label)
-            self.expanded_text_label = Gtk.Label(label=expanded_text)
+            self.expanded_text_label = Gtk.Label()
+            self.expanded_text_label.set_markup(expanded_text)
             self.expander.add(self.expanded_text_label)
             self.box.pack_start(self.expander, True, True, 0)
 
@@ -268,8 +286,8 @@ class ProgressbarDialogWindow(DialogWindow):
         timeout_ms: int = 50,
         title: str = None,
         message: str = None,
-        expander_label: str = None,
-        expanded_text: str = None,
+        expander_label: str = "",
+        expanded_text: str = "",
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,

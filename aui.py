@@ -100,7 +100,12 @@ class _InfoDialog(Gtk.Dialog):
         self.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self._box = Gtk.VBox()
         self.label = Gtk.Label()
+        self.label.set_margin_top(10)
+        self.label.set_margin_bottom(10)
+        self.label.set_margin_start(10)
+        self.label.set_margin_end(10)
         self.label.set_markup(message)
+
         self._box.pack_start(self.label, True, True, 0)
 
         self.expander_label = None
@@ -197,10 +202,16 @@ class _EntryDialog(Gtk.Dialog):
 
         if label is not None:
             self._label = Gtk.Label(xalign=0)
+            self._label.set_margin_top(2)
+            self._label.set_margin_start(5)
+            self._label.set_margin_end(5)
             self._label.set_markup(label)
             self._box.pack_start(self._label, False, False, 5)
 
         self.entry = Gtk.Entry(text=default_text)
+        self.entry.set_margin_bottom(2)
+        self.entry.set_margin_start(5)
+        self.entry.set_margin_end(5)
         self._box.pack_start(self.entry, True, True, 0)
 
         self._content_area = self.get_content_area()
@@ -257,6 +268,9 @@ class _ProgressbarDialog(Gtk.Dialog):
         self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.box = Gtk.VBox(spacing=15)
         self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_margin_top(10)
+        self.progressbar.set_margin_start(5)
+        self.progressbar.set_margin_end(5)
 
         if message:
             self.progressbar.set_text(message)
@@ -268,6 +282,8 @@ class _ProgressbarDialog(Gtk.Dialog):
         self.expanded_text_label = None
         if expander_label:
             self.expander = Gtk.Expander(label=expander_label)
+            self.expander.set_margin_start(5)
+            self.expander.set_margin_end(5)
             self.expanded_text_label = Gtk.Label()
             self.expanded_text_label.set_markup(expanded_text)
             self.expander.add(self.expanded_text_label)

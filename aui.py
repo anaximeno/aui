@@ -496,3 +496,102 @@ class RadioChoiceDialogWindow(DialogWindow):
                 if btn.gtk_button.get_active():
                     return btn.id
         return None
+
+
+class ActionableButton:
+    _id_counter = 0
+
+    def __init__(self, text: str, on_click_action: Callable) -> None:
+        self._id = self._get_id()
+        self._on_click_action = on_click_action
+        self._text = text
+
+    @classmethod
+    def _get_id(cls):
+        cls._id_counter += 1
+        return cls._id_counter
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @property
+    def on_click_action(self) -> Callable:
+        return self._on_click_action
+
+    def trigger_on_click_action(self, *args, **kwargs) -> None:
+        self._on_click_action(*args, **kwargs)
+
+
+class _ActionableDialog(Gtk.Dialog):
+    def __init__(
+        self,
+        *args,
+        title: str = None,
+        message: str,
+        buttons: Iterable[ActionableButton],
+        width: int,
+        height: int,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, title=title, **kwargs)
+        self._box = Gtk.VBox()
+        self._label = Gtk.Label()
+        self._label.set_margin_top(10)
+        self._label.set_margin_bottom(10)
+        self._label.set_margin_start(10)
+        self._label.set_margin_end(10)
+        self._label.set_halign(Gtk.Align.CENTER)
+        self._label.set_valign(Gtk.Align.CENTER)
+        self._label.set_markup(message)
+        self._box.pack_start(self._label, True, True, 0)
+        self._content_area = self.get_content_area()
+        self._content_area.add(self._box)
+        self._buttons = buttons
+
+        for button in self._buttons:
+            self.add_button(button.text, button.id)
+
+        self.set_default_size(width, height)
+        self.show_all()
+
+
+class ActionableDialogWindow(DialogWindow):
+    def __init__(
+        self,
+        *args,
+        window_title: str,
+        message: str,
+        buttons: Iterable[ActionableButton],
+        width: int = 360,
+        height: int = 120,
+        icon_path: str = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            title=window_title,
+            icon_path=icon_path,
+            **kwargs,
+        )
+        self.buttons = buttons
+        self.dialog = _ActionableDialog(
+            flags=0,
+            transient_for=self,
+            message=message,
+            buttons=buttons,
+            width=width,
+            height=height,
+        )
+
+    def run(self) -> None:
+        response = super().run()
+        for button in self.buttons:
+            if response == button.id:
+                button.trigger_on_click_action()
+                break
+

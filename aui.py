@@ -564,7 +564,7 @@ class ActionableDialogWindow(DialogWindow):
     def __init__(
         self,
         *args,
-        window_title: str,
+        title: str,
         message: str,
         buttons: Iterable[ActionableButton],
         width: int = 360,
@@ -574,7 +574,7 @@ class ActionableDialogWindow(DialogWindow):
     ) -> None:
         super().__init__(
             *args,
-            title=window_title,
+            title=title,
             icon_path=icon_path,
             **kwargs,
         )

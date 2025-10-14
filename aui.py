@@ -30,29 +30,27 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf, GLib
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Optional, List
 
 
 HOME = os.path.expanduser("~")
-
-ACTIONS_DIR = ".local/share/nemo/actions"
-ICON_FILENAME = "icon.png"
+ICON_LOCATION = os.path.join(HOME, ".local/share/nemo/actions/%s/icon.png")
 
 
-def get_action_icon_path(uuid: str, use_dev_icon_if_found=None) -> str:
+def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
     """Returns the path of the `icon.png` file of the action.
 
     #### Params:
 
     - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png` file
-    - `use_dev_icon_if_found`: whether to use or not dev icon even if the action icon existe (useful when
+    - `use_dev_icon: Optional[bool] = : whether to use or not dev icon even if the action icon existe (useful when
         the dev action and the normal action instances are both installed)
     """
-    icon_path = os.path.join(HOME, ACTIONS_DIR, uuid, ICON_FILENAME)
-    dev_icon_path = os.path.join(HOME, ACTIONS_DIR, "devtest-" + uuid, ICON_FILENAME)
+    icon_path = ICON_LOCATION % uuid
+    dev_icon_path = ICON_LOCATION % ("devtest-" + uuid)
 
     if os.path.exists(dev_icon_path) and (
-        not os.path.exists(icon_path) or use_dev_icon_if_found is True
+        not os.path.exists(icon_path) or use_dev_icon is True
     ):
         return dev_icon_path
 
@@ -334,6 +332,7 @@ class ProgressbarDialogWindow(DialogWindow):
         return self.dialog.progressbar
 
     def _on_cancel(self, dialog, response_id) -> None:
+        self.stop()
         if self._on_cancel_callback:
             self._on_cancel_callback()
 
@@ -398,12 +397,12 @@ class RadioChoiceButton:
 class _RadioChoiceDialog(Gtk.Dialog):
     def __init__(
         self,
-        radio_buttons: Iterable[RadioChoiceButton],
-        default_active_button_id: str = None,
+        radio_buttons: List[RadioChoiceButton],
+        default_active_button_id: Optional[str] = None,
         radio_spacing: float = 5,
         radio_orientation=Gtk.Orientation.VERTICAL,
-        title: str = None,
-        label: str = None,
+        title: Optional[str] = None,
+        label: Optional[str] = None,
         width: int = 360,
         height: int = 120,
         **kwargs,
@@ -465,13 +464,13 @@ class RadioChoiceDialogWindow(DialogWindow):
 
     def __init__(
         self,
-        radio_buttons: Iterable[RadioChoiceButton],
-        default_active_button_id: str = None,
+        radio_buttons: List[RadioChoiceButton],
+        default_active_button_id: Optional[str] = None,
         radio_spacing: float = 5,
         radio_orientation=VERTICAL_RADIO,
-        title: str = None,
-        label: str = None,
-        window_icon_path: str = None,
+        title: Optional[str] = None,
+        label: Optional[str] = None,
+        window_icon_path: Optional[str] = None,
         width: int = 360,
         height: int = 120,
     ) -> None:

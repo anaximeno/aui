@@ -584,6 +584,7 @@ class ActionableDialogWindow(DialogWindow):
         self.dialog = _ActionableDialog(
             flags=0,
             transient_for=self,
+            title=title,
             message=message,
             buttons=buttons,
             width=width,

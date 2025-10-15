@@ -460,7 +460,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
 
         self.radio_buttons = radio_buttons
         self._radio_buttons_spacing = radio_spacing
-        self._active_button_text = default_active_button_id
+        self._default_active_button_id = default_active_button_id
         self._radio_orientation = radio_orientation
 
         self._box = Gtk.VBox(spacing=12)
@@ -488,7 +488,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
             first_button = self.radio_buttons[0]
             first_gtk_btn = first_button.create_gtk_button(None)
 
-            if first_button.id == self._active_button_text:
+            if first_button.id == self._default_active_button_id:
                 first_gtk_btn.set_active(True)
 
             self._radio_box.pack_start(first_gtk_btn, False, False, 0)
@@ -497,7 +497,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
                 gtk_btn = radio_button.create_gtk_button(first_gtk_btn)
                 self._radio_box.pack_start(gtk_btn, False, False, 0)
 
-                if radio_button.id == self._active_button_text:
+                if radio_button.id == self._default_active_button_id:
                     gtk_btn.set_active(True)
 
         self._content_area = self.get_content_area()

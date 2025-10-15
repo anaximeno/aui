@@ -89,15 +89,18 @@ class _InfoDialog(Gtk.Dialog):
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
         self.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
-        self._box = Gtk.VBox()
+        self._box = Gtk.VBox(spacing=10)
         self.label = Gtk.Label()
-        self.label.set_margin_top(15)
-        self.label.set_margin_bottom(10)
-        self.label.set_margin_start(10)
-        self.label.set_margin_end(10)
+        self.label.set_margin_top(20)
+        self.label.set_margin_bottom(15)
+        self.label.set_margin_start(20)
+        self.label.set_margin_end(20)
         self.label.set_halign(Gtk.Align.CENTER)
         self.label.set_valign(Gtk.Align.CENTER)
         self.label.set_justify(Gtk.Justification.CENTER)
+        self.label.set_line_wrap(True)
+        self.label.set_line_wrap_mode(2)
+        self.label.set_max_width_chars(50)
         self.label.set_markup(message)
 
         self._box.pack_start(self.label, True, True, 0)
@@ -107,13 +110,30 @@ class _InfoDialog(Gtk.Dialog):
 
         if expander_label:
             self.expander = Gtk.Expander(label=expander_label)
+            self.expander.set_margin_start(15)
+            self.expander.set_margin_end(15)
+            self.expander.set_margin_bottom(10)
+
+            scrolled = Gtk.ScrolledWindow()
+            scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+            scrolled.set_min_content_height(100)
+            scrolled.set_max_content_height(200)
+
             self.expanded_text_label = Gtk.Label()
             self.expanded_text_label.set_markup(expanded_text)
             self.expanded_text_label.set_halign(Gtk.Align.START)
+            self.expanded_text_label.set_valign(Gtk.Align.START)
             self.expanded_text_label.set_margin_top(5)
             self.expanded_text_label.set_margin_start(10)
-            self.expander.add(self.expanded_text_label)
-            self._box.pack_start(self.expander, True, True, 10)
+            self.expanded_text_label.set_margin_end(10)
+            self.expanded_text_label.set_margin_bottom(5)
+            self.expanded_text_label.set_line_wrap(True)
+            self.expanded_text_label.set_line_wrap_mode(2)
+            self.expanded_text_label.set_selectable(True)
+
+            scrolled.add(self.expanded_text_label)
+            self.expander.add(scrolled)
+            self._box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
@@ -195,25 +215,28 @@ class _EntryDialog(Gtk.Dialog):
             Gtk.STOCK_OK,
             Gtk.ResponseType.OK,
         )
-        self._box = Gtk.VBox(spacing=0)
+        self._box = Gtk.VBox(spacing=10)
+        self._box.set_margin_top(10)
+        self._box.set_margin_bottom(10)
+        self._box.set_margin_start(15)
+        self._box.set_margin_end(15)
 
         if label is not None:
             self._label = Gtk.Label(xalign=0)
-            self._label.set_margin_top(2)
-            self._label.set_margin_start(5)
-            self._label.set_margin_end(5)
             self._label.set_markup(label)
-            self._box.pack_start(self._label, False, False, 5)
+            self._label.set_line_wrap(True)
+            self._label.set_line_wrap_mode(2)
+            self._label.set_max_width_chars(50)
+            self._box.pack_start(self._label, False, False, 0)
 
         self.entry = Gtk.Entry(text=default_text)
-        self.entry.set_margin_bottom(2)
-        self.entry.set_margin_start(5)
-        self.entry.set_margin_end(5)
-        self._box.pack_start(self.entry, True, True, 0)
+        self.entry.set_activates_default(True)
+        self._box.pack_start(self.entry, False, False, 0)
 
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
         self.set_default_size(width, height)
+        self.set_default_response(Gtk.ResponseType.OK)
         self.show_all()
 
 
@@ -263,31 +286,46 @@ class _ProgressbarDialog(Gtk.Dialog):
     ):
         super().__init__(title=title, **kwargs)
         self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-        self.box = Gtk.VBox(spacing=15)
+        self.box = Gtk.VBox(spacing=12)
+        self.box.set_margin_top(15)
+        self.box.set_margin_bottom(15)
+        self.box.set_margin_start(20)
+        self.box.set_margin_end(20)
+
         self.progressbar = Gtk.ProgressBar()
-        self.progressbar.set_margin_top(10)
-        self.progressbar.set_margin_start(5)
-        self.progressbar.set_margin_end(5)
+        self.progressbar.set_pulse_step(0.1)
 
         if message:
             self.progressbar.set_text(message)
             self.progressbar.set_show_text(True)
 
-        self.box.pack_start(self.progressbar, True, True, 0)
+        self.box.pack_start(self.progressbar, False, False, 0)
 
         self.expander = None
         self.expanded_text_label = None
         if expander_label:
             self.expander = Gtk.Expander(label=expander_label)
-            self.expander.set_margin_start(5)
-            self.expander.set_margin_end(5)
+
+            scrolled = Gtk.ScrolledWindow()
+            scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+            scrolled.set_min_content_height(80)
+            scrolled.set_max_content_height(150)
+
             self.expanded_text_label = Gtk.Label()
             self.expanded_text_label.set_markup(expanded_text)
             self.expanded_text_label.set_halign(Gtk.Align.START)
+            self.expanded_text_label.set_valign(Gtk.Align.START)
             self.expanded_text_label.set_margin_top(5)
             self.expanded_text_label.set_margin_start(10)
-            self.expander.add(self.expanded_text_label)
-            self.box.pack_start(self.expander, True, True, 0)
+            self.expanded_text_label.set_margin_end(10)
+            self.expanded_text_label.set_margin_bottom(5)
+            self.expanded_text_label.set_line_wrap(True)
+            self.expanded_text_label.set_line_wrap_mode(2)
+            self.expanded_text_label.set_selectable(True)
+
+            scrolled.add(self.expanded_text_label)
+            self.expander.add(scrolled)
+            self.box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()
         self._content_area.add(self.box)
@@ -418,28 +456,35 @@ class _RadioChoiceDialog(Gtk.Dialog):
 
         self.radio_buttons = radio_buttons
         self._radio_buttons_spacing = radio_spacing
-        self._default_active_button_id = default_active_button_id
+        self._active_button_text = default_active_button_id
         self._radio_orientation = radio_orientation
 
-        self._box = Gtk.VBox(spacing=0)
+        self._box = Gtk.VBox(spacing=12)
+        self._box.set_margin_top(15)
+        self._box.set_margin_bottom(15)
+        self._box.set_margin_start(20)
+        self._box.set_margin_end(20)
 
         if label is not None:
             self._label = Gtk.Label(xalign=0)
             self._label.set_markup(label)
-            self._box.pack_start(self._label, False, False, 10)
+            self._label.set_line_wrap(True)
+            self._label.set_line_wrap_mode(2)
+            self._label.set_max_width_chars(50)
+            self._box.pack_start(self._label, False, False, 0)
 
         self._radio_box = Gtk.Box(
             spacing=self._radio_buttons_spacing,
             orientation=self._radio_orientation,
         )
 
-        self._box.pack_start(self._radio_box, True, True, 0)
+        self._box.pack_start(self._radio_box, False, False, 0)
 
         if any(self.radio_buttons):
             first_button = self.radio_buttons[0]
             first_gtk_btn = first_button.create_gtk_button(None)
 
-            if first_button.id == self._default_active_button_id:
+            if first_button.id == self._active_button_text:
                 first_gtk_btn.set_active(True)
 
             self._radio_box.pack_start(first_gtk_btn, False, False, 0)
@@ -448,13 +493,14 @@ class _RadioChoiceDialog(Gtk.Dialog):
                 gtk_btn = radio_button.create_gtk_button(first_gtk_btn)
                 self._radio_box.pack_start(gtk_btn, False, False, 0)
 
-                if radio_button.id == self._default_active_button_id:
+                if radio_button.id == self._active_button_text:
                     gtk_btn.set_active(True)
 
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
 
         self.set_default_size(width, height)
+        self.set_default_response(Gtk.ResponseType.OK)
         self.show_all()
 
 
@@ -536,26 +582,33 @@ class _ActionableDialog(Gtk.Dialog):
         buttons: Iterable[ActionableButton],
         width: int,
         height: int,
+        active_button_text: Optional[str] = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
-        self._box = Gtk.VBox()
+        self._box = Gtk.VBox(spacing=10)
         self._label = Gtk.Label()
-        self._label.set_margin_top(15)
-        self._label.set_margin_bottom(10)
-        self._label.set_margin_start(10)
-        self._label.set_margin_end(10)
+        self._label.set_margin_top(20)
+        self._label.set_margin_bottom(15)
+        self._label.set_margin_start(20)
+        self._label.set_margin_end(20)
         self._label.set_halign(Gtk.Align.CENTER)
         self._label.set_valign(Gtk.Align.CENTER)
         self._label.set_justify(Gtk.Justification.CENTER)
+        self._label.set_line_wrap(True)
+        self._label.set_line_wrap_mode(2)
+        self._label.set_max_width_chars(50)
         self._label.set_markup(message)
         self._box.pack_start(self._label, True, True, 0)
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
         self._buttons = buttons
+        self._active_button_text = active_button_text
 
         for button in self._buttons:
             self.add_button(button.text, button.id)
+            if button.text == self._active_button_text:
+                self.set_default_response(button.id)
 
         self.set_default_size(width, height)
         self.show_all()
@@ -570,13 +623,14 @@ class ActionableDialogWindow(DialogWindow):
         buttons: Iterable[ActionableButton],
         width: int = 360,
         height: int = 120,
-        icon_path: str = None,
+        window_icon_path: str = None,
+        active_button_text: Optional[str] = None,
         **kwargs,
     ) -> None:
         super().__init__(
             *args,
             title=title,
-            icon_path=icon_path,
+            icon_path=window_icon_path,
             **kwargs,
         )
         self.buttons = buttons
@@ -588,12 +642,13 @@ class ActionableDialogWindow(DialogWindow):
             buttons=buttons,
             width=width,
             height=height,
+            active_button_text=active_button_text,
         )
 
-    def run(self) -> None:
+    def run(self) -> str:
         response = super().run()
         for button in self.buttons:
             if response == button.id:
                 button.trigger_on_click_action()
-                break
-
+                return button.text
+        return None

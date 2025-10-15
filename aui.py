@@ -1,7 +1,7 @@
 """Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
-@Version: 0.6
+@Version: 0.7
 @License: MIT License
 
 Copyright (c) 2024, Anaxímeno Brito
@@ -83,6 +83,7 @@ class _InfoDialog(Gtk.Dialog):
         title: str = None,
         width: int,
         height: int,
+        resizable: bool = False,
         expander_label: str = "",
         expanded_text: str = "",
         **kwargs,
@@ -138,6 +139,7 @@ class _InfoDialog(Gtk.Dialog):
         self._content_area = self.get_content_area()
         self._content_area.add(self._box)
         self.set_default_size(width, height)
+        self.set_resizable(resizable)
         self.show_all()
 
 
@@ -149,6 +151,7 @@ class InfoDialogWindow(DialogWindow):
         window_icon_path: str = None,
         width: int = 360,
         height: int = 120,
+        resizable: bool = False,
         expander_label: str = "",
         expanded_text: str = "",
     ) -> None:
@@ -160,6 +163,7 @@ class InfoDialogWindow(DialogWindow):
             message=message,
             width=width,
             height=height,
+            resizable=resizable,
             expander_label=expander_label,
             expanded_text=expanded_text,
         )

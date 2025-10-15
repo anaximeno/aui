@@ -649,7 +649,7 @@ class ActionableDialogWindow(DialogWindow):
             active_button_text=active_button_text,
         )
 
-    def run(self) -> str:
+    def run(self) -> Optional[str]:
         response = super().run()
         for button in self.buttons:
             if response == button.id:

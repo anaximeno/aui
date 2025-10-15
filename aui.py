@@ -43,7 +43,7 @@ def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
     #### Params:
 
     - `uuid`: the uuid (or id) of the action. It will be used to locate the path of the `icon.png` file
-    - `use_dev_icon: Optional[bool] = : whether to use or not dev icon even if the action icon existe (useful when
+    - `use_dev_icon`: whether to use or not dev icon even if the action icon exists (useful when
         the dev action and the normal action instances are both installed)
     """
     icon_path = ICON_LOCATION % uuid

@@ -42,6 +42,16 @@ HOME = os.path.expanduser("~")
 ICON_LOCATION = os.path.join(HOME, ".local/share/nemo/actions/%s/icon.png")
 
 
+def log(*messages: object) -> None:
+    """Logs a messages to the stderr.
+
+    #### Params:
+
+    - `messages`: the messages to be logged
+    """
+    print(*messages, file=os.sys.stderr)
+
+
 def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
     """Returns the path of the `icon.png` file of the action.
 
@@ -111,16 +121,20 @@ class _ContentHeaderComponent(Gtk.Box):
         self.set_margin_bottom(margin[2])
         self.set_margin_start(margin[3])
 
-        if icon_path is not None and os.path.exists(icon_path):
-            # TODO: don't hardcode icon size
-            icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 48, 48)
-            self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
-            self.pack_start(self._icon_image, False, False, 0)
-        elif icon_name is not None:
-            # TODO: don't hardcode icon size
-            icon_pixbuf = Gtk.IconTheme.get_default().load_icon(icon_name, 48, 0)
-            self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
-            self.pack_start(self._icon_image, False, False, 0)
+        self._icon_image = None
+        try:
+            if icon_path is not None and os.path.exists(icon_path):
+                # TODO: don't hardcode icon size
+                icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 48, 48)
+                self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
+                self.pack_start(self._icon_image, False, False, 0)
+            elif icon_name is not None:
+                # TODO: don't hardcode icon size
+                icon_pixbuf = Gtk.IconTheme.get_default().load_icon(icon_name, 48, 0)
+                self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
+                self.pack_start(self._icon_image, False, False, 0)
+        except Exception as e:
+            log("aui.py: Failed to load icon for ContentHeaderComponent. Exception:", e)
 
         if title is not None:
             self.text_box = Gtk.VBox(spacing=5)
@@ -144,13 +158,18 @@ class DialogWindow(Gtk.Window):
         super().__init__(*args, **kwargs)
         self._icon_path = icon_path
         self._icon_name = icon_name
-        if self._icon_path is not None and os.path.exists(self._icon_path):
-            self._icon = GdkPixbuf.Pixbuf.new_from_file(self._icon_path)
-            self.set_icon(self._icon)
-        elif self._icon_name is not None:
-            # TODO: don't hardcode icon size
-            self._icon = Gtk.IconTheme.get_default().load_icon(icon_name, 64, 0)
-            self.set_icon(self._icon)
+        self._icon = None
+
+        try:
+            if self._icon_path is not None and os.path.exists(self._icon_path):
+                self._icon = GdkPixbuf.Pixbuf.new_from_file(self._icon_path)
+                self.set_icon(self._icon)
+            elif self._icon_name is not None:
+                # TODO: don't hardcode icon size
+                self._icon = Gtk.IconTheme.get_default().load_icon(icon_name, 64, 0)
+                self.set_icon(self._icon)
+        except Exception as e:
+            log("aui.py: Failed to load icon for DialogWindow. Exception:", e)
 
     def run(self):
         return self.dialog.run()
@@ -819,8 +838,6 @@ def run(args: Namespace) -> None:
             message=args.text,
             title=args.title,
             header=args.header,
-            expanded_text=args.expanded_text,
-            expander_label=args.expander_label,
             icon_path=args.icon_path,
             icon_name=args.icon_name,
             hide_in_dialog_icon=args.hide_in_dialog_icon,
@@ -883,8 +900,6 @@ if __name__ == "__main__":
     question_parser.add_argument('--icon-path', help='Window icon path')
     question_parser.add_argument('--icon-name', help='Window icon name')
     question_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
-    question_parser.add_argument('--expander-label', help='Expander label text')
-    question_parser.add_argument('--expanded-text', help='Expanded text content')
 
     # Entry dialog window
     entry_parser = subparsers.add_parser('entry', help='Show text entry dialog')
@@ -895,6 +910,8 @@ if __name__ == "__main__":
     entry_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     entry_parser.add_argument('--icon-path', help='Window icon path')
     entry_parser.add_argument('--icon-name', help='Window icon name')
+
+    #TODO: Add more dialog types to CLI
 
     args = parser.parse_args()
 

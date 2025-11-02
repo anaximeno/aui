@@ -125,6 +125,7 @@ class _ContentHeaderComponent(Gtk.Box):
 
         self.pack_start(self.text_box, True, True, 0)
 
+
 ## --- Dialog Windows ---
 
 
@@ -183,7 +184,7 @@ class _InfoDialog(Gtk.Dialog):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.label.set_line_wrap_mode(2)
-        self.label.set_max_width_chars(50)
+        self.label.set_max_width_chars(width // 10)
         self.label.set_markup(message)
 
         self._box.pack_start(self.label, True, True, 0)
@@ -274,7 +275,7 @@ class _QuestionDialog(Gtk.Dialog):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.label.set_line_wrap_mode(2)
-        self.label.set_max_width_chars(50)
+        self.label.set_max_width_chars(width // 10)
         self.label.set_markup(message)
 
         self._content_area.add(self.label)
@@ -350,7 +351,7 @@ class _EntryDialog(Gtk.Dialog):
             self._label.set_markup(label)
             self._label.set_line_wrap(True)
             self._label.set_line_wrap_mode(2)
-            self._label.set_max_width_chars(50)
+            self._label.set_max_width_chars(width // 10)
             self._box.pack_start(self._label, False, False, 0)
 
         self.entry = Gtk.Entry(text=default_text)
@@ -577,7 +578,7 @@ class _RadioChoiceDialog(Gtk.Dialog):
             self._label.set_markup(label)
             self._label.set_line_wrap(True)
             self._label.set_line_wrap_mode(2)
-            self._label.set_max_width_chars(50)
+            self._label.set_max_width_chars(width // 10)
             self._box.pack_start(self._label, False, False, 0)
 
         self._radio_box = Gtk.Box(
@@ -704,7 +705,7 @@ class _ActionableDialog(Gtk.Dialog):
         self._label.set_justify(Gtk.Justification.CENTER)
         self._label.set_line_wrap(True)
         self._label.set_line_wrap_mode(2)
-        self._label.set_max_width_chars(50)
+        self._label.set_max_width_chars(width // 10)
         self._label.set_markup(message)
         self._box.pack_start(self._label, True, True, 0)
         self._content_area = self.get_content_area()

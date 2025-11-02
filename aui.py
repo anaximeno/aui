@@ -62,6 +62,40 @@ def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
     return icon_path
 
 
+## --- Components ---
+
+
+class _ScrollableExpanderComponent(Gtk.Expander):
+    def __init__(
+        self,
+        label: str,
+        expanded_text: str,
+        min_content_height: int = 80,
+        max_content_height: int = 150,
+    ) -> None:
+        super().__init__(label=label)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_min_content_height(min_content_height)
+        scrolled.set_max_content_height(max_content_height)
+
+        self.expanded_text_label = Gtk.Label()
+        self.expanded_text_label.set_markup(expanded_text)
+        self.expanded_text_label.set_halign(Gtk.Align.START)
+        self.expanded_text_label.set_valign(Gtk.Align.START)
+        self.expanded_text_label.set_margin_top(5)
+        self.expanded_text_label.set_margin_start(10)
+        self.expanded_text_label.set_margin_end(10)
+        self.expanded_text_label.set_margin_bottom(5)
+        self.expanded_text_label.set_line_wrap(True)
+        self.expanded_text_label.set_line_wrap_mode(2)
+        self.expanded_text_label.set_selectable(True)
+
+        scrolled.add(self.expanded_text_label)
+        self.add(scrolled)
+
+
 ## --- Dialog Windows ---
 
 
@@ -118,30 +152,10 @@ class _InfoDialog(Gtk.Dialog):
         self.expanded_text = None
 
         if expander_label:
-            self.expander = Gtk.Expander(label=expander_label)
-            self.expander.set_margin_start(15)
-            self.expander.set_margin_end(15)
-            self.expander.set_margin_bottom(10)
-
-            scrolled = Gtk.ScrolledWindow()
-            scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-            scrolled.set_min_content_height(100)
-            scrolled.set_max_content_height(200)
-
-            self.expanded_text_label = Gtk.Label()
-            self.expanded_text_label.set_markup(expanded_text)
-            self.expanded_text_label.set_halign(Gtk.Align.START)
-            self.expanded_text_label.set_valign(Gtk.Align.START)
-            self.expanded_text_label.set_margin_top(5)
-            self.expanded_text_label.set_margin_start(10)
-            self.expanded_text_label.set_margin_end(10)
-            self.expanded_text_label.set_margin_bottom(5)
-            self.expanded_text_label.set_line_wrap(True)
-            self.expanded_text_label.set_line_wrap_mode(2)
-            self.expanded_text_label.set_selectable(True)
-
-            scrolled.add(self.expanded_text_label)
-            self.expander.add(scrolled)
+            self.expander = _ScrollableExpanderComponent(
+                label=expander_label,
+                expanded_text=expanded_text,
+            )
             self._box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()
@@ -380,27 +394,10 @@ class _ProgressbarDialog(Gtk.Dialog):
         self.expander = None
         self.expanded_text_label = None
         if expander_label:
-            self.expander = Gtk.Expander(label=expander_label)
-
-            scrolled = Gtk.ScrolledWindow()
-            scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-            scrolled.set_min_content_height(80)
-            scrolled.set_max_content_height(150)
-
-            self.expanded_text_label = Gtk.Label()
-            self.expanded_text_label.set_markup(expanded_text)
-            self.expanded_text_label.set_halign(Gtk.Align.START)
-            self.expanded_text_label.set_valign(Gtk.Align.START)
-            self.expanded_text_label.set_margin_top(5)
-            self.expanded_text_label.set_margin_start(10)
-            self.expanded_text_label.set_margin_end(10)
-            self.expanded_text_label.set_margin_bottom(5)
-            self.expanded_text_label.set_line_wrap(True)
-            self.expanded_text_label.set_line_wrap_mode(2)
-            self.expanded_text_label.set_selectable(True)
-
-            scrolled.add(self.expanded_text_label)
-            self.expander.add(scrolled)
+            self.expander = _ScrollableExpanderComponent(
+                label=expander_label,
+                expanded_text=expanded_text,
+            )
             self.box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()

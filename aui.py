@@ -1,7 +1,7 @@
 """Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
-@Version: 0.7
+@Version: 0.8
 @License: MIT License
 
 Copyright (c) 2024, Anaxímeno Brito
@@ -177,7 +177,67 @@ class InfoDialogWindow(DialogWindow):
         )
 
 
-class QuestionDialogWindow(DialogWindow):  # TODO: support markup annotations
+class _QuestionDialog(Gtk.Dialog):
+    def __init__(
+        self,
+        *args,
+        message: str,
+        title: str = None,
+        header: str = None,
+        width: int = 360,
+        height: int = 120,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, title=title, **kwargs)
+        self.add_buttons(
+            Gtk.STOCK_NO,
+            Gtk.ResponseType.NO,
+            Gtk.STOCK_YES,
+            Gtk.ResponseType.YES,
+        )
+
+        self.header = None
+        if header is not None:
+            self.header = Gtk.Label()
+            self.header.set_markup(f"<span size='larger'><b>{header}</b></span>")
+            self.header.set_margin_top(15)
+            self.header.set_margin_bottom(5)
+            self.header.set_margin_start(20)
+            self.header.set_margin_end(20)
+            self.header.set_halign(Gtk.Align.CENTER)
+            self.header.set_valign(Gtk.Align.CENTER)
+            self.header.set_justify(Gtk.Justification.CENTER)
+            self.header.set_line_wrap(True)
+            self.header.set_line_wrap_mode(2)
+            self.header.set_max_width_chars(50)
+
+        self.label = Gtk.Label()
+        self.label.set_margin_top(20)
+        self.label.set_margin_bottom(15)
+        self.label.set_margin_start(20)
+        self.label.set_margin_end(20)
+        self.label.set_halign(Gtk.Align.CENTER)
+        self.label.set_valign(Gtk.Align.CENTER)
+        self.label.set_justify(Gtk.Justification.CENTER)
+        self.label.set_line_wrap(True)
+        self.label.set_line_wrap_mode(2)
+        self.label.set_max_width_chars(50)
+        self.label.set_markup(message)
+
+        self._content_area = self.get_content_area()
+
+        if self.header is not None:
+            self._content_area.add(self.header)
+
+        self._content_area.add(self.label)
+
+        self.set_default_size(width, height)
+        self.set_resizable(False)
+        self.show_all()
+
+
+
+class QuestionDialogWindow(DialogWindow):
     RESPONSE_YES = "y"
     RESPONSE_NO = "n"
 
@@ -185,17 +245,21 @@ class QuestionDialogWindow(DialogWindow):  # TODO: support markup annotations
         self,
         message: str,
         title: str = None,
+        header: str = None,
+        width: int = 360,
+        height: int = 120,
         window_icon_path: str = None,
     ) -> None:
         super().__init__(title=title, icon_path=window_icon_path)
-        self.dialog = Gtk.MessageDialog(
+        self.dialog = _QuestionDialog(
             flags=0,
             transient_for=self,
             title=title,
-            message_type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.YES_NO,
+            message=message,
+            header=header,
+            width=width,
+            height=height,
         )
-        self.dialog.format_secondary_text(message)
 
     def run(self):
         """Returns `y` if the user clicked yes, or `n` if the user clicked no.
@@ -684,7 +748,10 @@ def run(args: Namespace) -> None:
         dialog = QuestionDialogWindow(
             message=args.text,
             title=args.title,
-            window_icon_path=args.icon_path
+            window_icon_path=args.icon_path,
+            header=args.header,
+            width=args.width,
+            height=args.height
         )
         result = dialog.run()
         dialog.destroy()
@@ -729,7 +796,10 @@ if __name__ == "__main__":
     # Question dialog window
     question_parser = subparsers.add_parser('question', help='Show question dialog')
     question_parser.add_argument('--text', required=True, help='Dialog text')
+    question_parser.add_argument('--header', help='Dialog header text')
     question_parser.add_argument('--title', help='Dialog window title')
+    question_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
+    question_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     question_parser.add_argument('--icon-path', help='Window icon path')
 
     # Entry dialog window

@@ -122,15 +122,16 @@ class _ContentHeaderComponent(Gtk.Box):
             self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
             self.pack_start(self._icon_image, False, False, 0)
 
-        self.text_box = Gtk.VBox(spacing=5)
+        if title is not None:
+            self.text_box = Gtk.VBox(spacing=5)
 
-        self.title_label = Gtk.Label()
-        self.title_label.set_markup(f"<span size='large'><b>{title}</b></span>")
-        self.title_label.set_halign(Gtk.Align.CENTER)
-        self.title_label.set_valign(Gtk.Align.CENTER)
-        self.text_box.pack_start(self.title_label, False, False, 0)
+            self.title_label = Gtk.Label()
+            self.title_label.set_markup(f"<span size='large'><b>{title}</b></span>")
+            self.title_label.set_halign(Gtk.Align.CENTER)
+            self.title_label.set_valign(Gtk.Align.CENTER)
+            self.text_box.pack_start(self.title_label, False, False, 0)
 
-        self.pack_start(self.text_box, True, True, 0)
+            self.pack_start(self.text_box, True, True, 0)
 
 
 ## --- Dialog Windows ---

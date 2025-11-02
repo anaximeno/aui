@@ -62,7 +62,7 @@ def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
     return icon_path
 
 
-## --- Components ---
+## --- Generic Components ---
 
 
 class _ScrollableExpanderComponent(Gtk.Expander):
@@ -96,6 +96,35 @@ class _ScrollableExpanderComponent(Gtk.Expander):
         self.add(scrolled)
 
 
+class _ContentHeaderComponent(Gtk.Box):
+    def __init__(
+        self,
+        title: str,
+        icon_path: str = None,
+        spacing: int = 20,
+        margin: tuple[int, int, int, int] = (10, 10, 10, 10),
+    ) -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=spacing)
+        self.set_margin_top(margin[0])
+        self.set_margin_end(margin[1])
+        self.set_margin_bottom(margin[2])
+        self.set_margin_start(margin[3])
+
+        if icon_path is not None and os.path.exists(icon_path):
+            icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 48, 48)
+            self.icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
+            self.pack_start(self.icon_image, False, False, 0)
+
+        self.text_box = Gtk.VBox(spacing=5)
+
+        self.title_label = Gtk.Label()
+        self.title_label.set_markup(f"<span size='large'><b>{title}</b></span>")
+        self.title_label.set_halign(Gtk.Align.CENTER)
+        self.title_label.set_valign(Gtk.Align.CENTER)
+        self.text_box.pack_start(self.title_label, False, False, 0)
+
+        self.pack_start(self.text_box, True, True, 0)
+
 ## --- Dialog Windows ---
 
 
@@ -123,16 +152,27 @@ class _InfoDialog(Gtk.Dialog):
         *args,
         message: str,
         title: str = None,
+        header: str = None,
         width: int,
         height: int,
         resizable: bool = False,
         expander_label: str = "",
         expanded_text: str = "",
+        icon_path: str = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
         self.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self._box = Gtk.VBox(spacing=10)
+
+        if header is not None:
+            self._header = _ContentHeaderComponent(
+                title=header,
+                icon_path=icon_path,
+                margin=(10, 10, 0, 10),
+            )
+            self._box.pack_start(self._header, False, False, 0)
+
         self.label = Gtk.Label()
         self.label.set_margin_top(20)
         self.label.set_margin_bottom(15)
@@ -170,24 +210,27 @@ class InfoDialogWindow(DialogWindow):
         self,
         message: str,
         title: str = None,
-        window_icon_path: str = None,
+        header: str = None,
+        icon_path: str = None,
         width: int = 360,
         height: int = 120,
         resizable: bool = False,
         expander_label: str = "",
         expanded_text: str = "",
     ) -> None:
-        super().__init__(title=title, icon_path=window_icon_path)
+        super().__init__(title=title, icon_path=icon_path)
         self.dialog = _InfoDialog(
             flags=0,
             transient_for=self,
             title=title,
+            header=header,
             message=message,
             width=width,
             height=height,
             resizable=resizable,
             expander_label=expander_label,
             expanded_text=expanded_text,
+            icon_path=icon_path,
         )
 
 
@@ -200,6 +243,7 @@ class _QuestionDialog(Gtk.Dialog):
         header: str = None,
         width: int = 360,
         height: int = 120,
+        icon_path: str = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
@@ -210,20 +254,15 @@ class _QuestionDialog(Gtk.Dialog):
             Gtk.ResponseType.YES,
         )
 
-        self.header = None
+        self._content_area = self.get_content_area()
+
         if header is not None:
-            self.header = Gtk.Label()
-            self.header.set_markup(f"<span size='larger'><b>{header}</b></span>")
-            self.header.set_margin_top(15)
-            self.header.set_margin_bottom(5)
-            self.header.set_margin_start(20)
-            self.header.set_margin_end(20)
-            self.header.set_halign(Gtk.Align.CENTER)
-            self.header.set_valign(Gtk.Align.CENTER)
-            self.header.set_justify(Gtk.Justification.CENTER)
-            self.header.set_line_wrap(True)
-            self.header.set_line_wrap_mode(2)
-            self.header.set_max_width_chars(50)
+            self._header = _ContentHeaderComponent(
+                title=header,
+                icon_path=icon_path,
+                margin=(10, 10, 0, 10),
+            )
+            self._content_area.add(self._header)
 
         self.label = Gtk.Label()
         self.label.set_margin_top(20)
@@ -237,11 +276,6 @@ class _QuestionDialog(Gtk.Dialog):
         self.label.set_line_wrap_mode(2)
         self.label.set_max_width_chars(50)
         self.label.set_markup(message)
-
-        self._content_area = self.get_content_area()
-
-        if self.header is not None:
-            self._content_area.add(self.header)
 
         self._content_area.add(self.label)
 
@@ -262,9 +296,9 @@ class QuestionDialogWindow(DialogWindow):
         header: str = None,
         width: int = 360,
         height: int = 120,
-        window_icon_path: str = None,
+        icon_path: str = None,
     ) -> None:
-        super().__init__(title=title, icon_path=window_icon_path)
+        super().__init__(title=title, icon_path=icon_path)
         self.dialog = _QuestionDialog(
             flags=0,
             transient_for=self,
@@ -336,11 +370,11 @@ class EntryDialogWindow(DialogWindow):
         title: str = None,
         label: str = None,
         default_text: str = "",
-        window_icon_path: str = None,
+        icon_path: str = None,
         width: int = 360,
         height: int = 120,
     ) -> None:
-        super().__init__(title=title, icon_path=window_icon_path)
+        super().__init__(title=title, icon_path=icon_path)
         self.dialog = _EntryDialog(
             flags=0,
             transient_for=self,
@@ -415,12 +449,12 @@ class ProgressbarDialogWindow(DialogWindow):
         message: str = None,
         expander_label: str = "",
         expanded_text: str = "",
-        window_icon_path: str = None,
+        icon_path: str = None,
         width: int = 360,
         height: int = 120,
         on_cancel_callback: Callable = None,
     ) -> None:
-        super().__init__(title=title, icon_path=window_icon_path)
+        super().__init__(title=title, icon_path=icon_path)
         self._timeout_ms = timeout_ms
         self._timeout_callback = timeout_callback
         self._on_cancel_callback = on_cancel_callback
@@ -589,11 +623,11 @@ class RadioChoiceDialogWindow(DialogWindow):
         radio_orientation=VERTICAL_RADIO,
         title: Optional[str] = None,
         label: Optional[str] = None,
-        window_icon_path: Optional[str] = None,
+        icon_path: Optional[str] = None,
         width: int = 360,
         height: int = 120,
     ) -> None:
-        super().__init__(title=title, icon_path=window_icon_path)
+        super().__init__(title=title, icon_path=icon_path)
         self.dialog = _RadioChoiceDialog(
             flags=0,
             transient_for=self,
@@ -696,14 +730,14 @@ class ActionableDialogWindow(DialogWindow):
         buttons: Iterable[ActionableButton],
         width: int = 360,
         height: int = 120,
-        window_icon_path: str = None,
+        icon_path: str = None,
         active_button_text: Optional[str] = None,
         **kwargs,
     ) -> None:
         super().__init__(
             *args,
             title=title,
-            icon_path=window_icon_path,
+            icon_path=icon_path,
             **kwargs,
         )
         self.buttons = buttons
@@ -734,7 +768,8 @@ def run(args: Namespace) -> None:
         dialog = InfoDialogWindow(
             message=args.text,
             title=args.title,
-            window_icon_path=args.icon_path,
+            header=args.header,
+            icon_path=args.icon_path,
             width=args.width,
             height=args.height
         )
@@ -745,7 +780,7 @@ def run(args: Namespace) -> None:
         dialog = QuestionDialogWindow(
             message=args.text,
             title=args.title,
-            window_icon_path=args.icon_path,
+            icon_path=args.icon_path,
             header=args.header,
             width=args.width,
             height=args.height
@@ -762,7 +797,7 @@ def run(args: Namespace) -> None:
             title=args.title,
             label=args.text,
             default_text=args.entry_text,
-            window_icon_path=args.icon_path,
+            icon_path=args.icon_path,
             width=args.width,
             height=args.height
         )
@@ -786,6 +821,7 @@ if __name__ == "__main__":
     info_parser = subparsers.add_parser('info', help='Show information dialog')
     info_parser.add_argument('--text', required=True, help='Dialog text')
     info_parser.add_argument('--title', help='Dialog window title')
+    info_parser.add_argument('--header', help='Dialog header text')
     info_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
     info_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     info_parser.add_argument('--icon-path', help='Window icon path')

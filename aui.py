@@ -721,24 +721,24 @@ if __name__ == "__main__":
     # Info dialog window
     info_parser = subparsers.add_parser('info', help='Show information dialog')
     info_parser.add_argument('--text', required=True, help='Dialog text')
-    info_parser.add_argument('--title', help='Dialog title')
-    info_parser.add_argument('--width', type=int, default=360, help='Dialog width')
-    info_parser.add_argument('--height', type=int, default=120, help='Dialog height')
+    info_parser.add_argument('--title', help='Dialog window title')
+    info_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
+    info_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     info_parser.add_argument('--icon-path', help='Window icon path')
 
     # Question dialog window
     question_parser = subparsers.add_parser('question', help='Show question dialog')
     question_parser.add_argument('--text', required=True, help='Dialog text')
-    question_parser.add_argument('--title', help='Dialog title')
+    question_parser.add_argument('--title', help='Dialog window title')
     question_parser.add_argument('--icon-path', help='Window icon path')
 
     # Entry dialog window
     entry_parser = subparsers.add_parser('entry', help='Show text entry dialog')
     entry_parser.add_argument('--text', help='Dialog label text')
-    entry_parser.add_argument('--title', help='Dialog title')
+    entry_parser.add_argument('--title', help='Dialog window title')
     entry_parser.add_argument('--entry-text', default='', help='Default entry text')
-    entry_parser.add_argument('--width', type=int, default=360, help='Dialog width')
-    entry_parser.add_argument('--height', type=int, default=120, help='Dialog height')
+    entry_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
+    entry_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     entry_parser.add_argument('--icon-path', help='Window icon path')
 
     args = parser.parse_args()

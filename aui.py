@@ -28,9 +28,14 @@ SOFTWARE.
 import os
 import gi
 
+import argparse
+
 gi.require_version("Gtk", "3.0")
+gi.require_version("GdkPixbuf", "2.0")
+gi.require_version("GLib", "2.0")
 from gi.repository import Gtk, GdkPixbuf, GLib
 from typing import Iterable, Callable, Optional, List
+from argparse import Namespace
 
 
 HOME = os.path.expanduser("~")
@@ -55,6 +60,9 @@ def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
         return dev_icon_path
 
     return icon_path
+
+
+## --- Dialog Windows ---
 
 
 class DialogWindow(Gtk.Window):
@@ -656,3 +664,83 @@ class ActionableDialogWindow(DialogWindow):
                 button.trigger_on_click_action()
                 return button.text
         return None
+
+
+## --- Command Line Interface ---
+
+def run(args: Namespace) -> None:
+    if args.dialog_type == 'info':
+        dialog = InfoDialogWindow(
+            message=args.text,
+            title=args.title,
+            window_icon_path=args.icon_path,
+            width=args.width,
+            height=args.height
+        )
+        dialog.run()
+        dialog.destroy()
+
+    elif args.dialog_type == 'question':
+        dialog = QuestionDialogWindow(
+            message=args.text,
+            title=args.title,
+            window_icon_path=args.icon_path
+        )
+        result = dialog.run()
+        dialog.destroy()
+        if result == QuestionDialogWindow.RESPONSE_YES:
+            exit(0)
+        else:
+            exit(1)
+
+    elif args.dialog_type == 'entry':
+        dialog = EntryDialogWindow(
+            title=args.title,
+            label=args.text,
+            default_text=args.entry_text,
+            window_icon_path=args.icon_path,
+            width=args.width,
+            height=args.height
+        )
+        result = dialog.run()
+        dialog.destroy()
+        if result is not None:
+            print(result)
+            exit(0)
+        else:
+            exit(1)
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Action UI - GTK Dialog Tool")
+    subparsers = parser.add_subparsers(dest='dialog_type', help='Dialog types')
+
+    # Info dialog window
+    info_parser = subparsers.add_parser('info', help='Show information dialog')
+    info_parser.add_argument('--text', required=True, help='Dialog text')
+    info_parser.add_argument('--title', help='Dialog title')
+    info_parser.add_argument('--width', type=int, default=360, help='Dialog width')
+    info_parser.add_argument('--height', type=int, default=120, help='Dialog height')
+    info_parser.add_argument('--icon-path', help='Window icon path')
+
+    # Question dialog window
+    question_parser = subparsers.add_parser('question', help='Show question dialog')
+    question_parser.add_argument('--text', required=True, help='Dialog text')
+    question_parser.add_argument('--title', help='Dialog title')
+    question_parser.add_argument('--icon-path', help='Window icon path')
+
+    # Entry dialog window
+    entry_parser = subparsers.add_parser('entry', help='Show text entry dialog')
+    entry_parser.add_argument('--text', help='Dialog label text')
+    entry_parser.add_argument('--title', help='Dialog title')
+    entry_parser.add_argument('--entry-text', default='', help='Default entry text')
+    entry_parser.add_argument('--width', type=int, default=360, help='Dialog width')
+    entry_parser.add_argument('--height', type=int, default=120, help='Dialog height')
+    entry_parser.add_argument('--icon-path', help='Window icon path')
+
+    args = parser.parse_args()
+
+    run(args)

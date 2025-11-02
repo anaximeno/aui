@@ -174,6 +174,7 @@ class _InfoDialog(Gtk.Dialog):
         expanded_text: str = "",
         icon_path: str = None,
         icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
@@ -183,8 +184,8 @@ class _InfoDialog(Gtk.Dialog):
         if header is not None or icon_path is not None or icon_name is not None:
             self._header = _ContentHeaderComponent(
                 title=header,
-                icon_path=icon_path,
-                icon_name=icon_name,
+                icon_path=icon_path if not hide_in_dialog_icon else None,
+                icon_name=icon_name if not hide_in_dialog_icon else None,
                 margin=(10, 10, 0, 10),
             )
             self._box.pack_start(self._header, False, False, 0)
@@ -227,13 +228,14 @@ class InfoDialogWindow(DialogWindow):
         message: str,
         title: str = None,
         header: str = None,
-        icon_path: str = None,
-        icon_name: str = None,
         width: int = 360,
         height: int = 120,
         resizable: bool = False,
         expander_label: str = "",
         expanded_text: str = "",
+        icon_path: str = None,
+        icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
     ) -> None:
         super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _InfoDialog(
@@ -249,6 +251,7 @@ class InfoDialogWindow(DialogWindow):
             expanded_text=expanded_text,
             icon_path=icon_path,
             icon_name=icon_name,
+            hide_in_dialog_icon=hide_in_dialog_icon,
         )
 
 
@@ -263,6 +266,7 @@ class _QuestionDialog(Gtk.Dialog):
         height: int = 120,
         icon_path: str = None,
         icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
@@ -278,8 +282,8 @@ class _QuestionDialog(Gtk.Dialog):
         if header is not None or icon_path is not None or icon_name is not None:
             self._header = _ContentHeaderComponent(
                 title=header,
-                icon_path=icon_path,
-                icon_name=icon_name,
+                icon_path=icon_path if not hide_in_dialog_icon else None,
+                icon_name=icon_name if not hide_in_dialog_icon else None,
                 margin=(10, 10, 0, 10),
             )
             self._content_area.add(self._header)
@@ -318,6 +322,7 @@ class QuestionDialogWindow(DialogWindow):
         height: int = 120,
         icon_path: str = None,
         icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
     ) -> None:
         super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _QuestionDialog(
@@ -330,6 +335,7 @@ class QuestionDialogWindow(DialogWindow):
             height=height,
             icon_path=icon_path,
             icon_name=icon_name,
+            hide_in_dialog_icon=hide_in_dialog_icon,
         )
 
     def run(self):
@@ -801,6 +807,7 @@ def run(args: Namespace) -> None:
             expander_label=args.expander_label,
             icon_path=args.icon_path,
             icon_name=args.icon_name,
+            hide_in_dialog_icon=args.hide_in_dialog_icon,
             width=args.width,
             height=args.height
         )
@@ -811,11 +818,12 @@ def run(args: Namespace) -> None:
         dialog = QuestionDialogWindow(
             message=args.text,
             title=args.title,
+            header=args.header,
             expanded_text=args.expanded_text,
             expander_label=args.expander_label,
             icon_path=args.icon_path,
             icon_name=args.icon_name,
-            header=args.header,
+            hide_in_dialog_icon=args.hide_in_dialog_icon,
             width=args.width,
             height=args.height
         )
@@ -861,6 +869,7 @@ if __name__ == "__main__":
     info_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     info_parser.add_argument('--icon-path', help='Window icon path')
     info_parser.add_argument('--icon-name', help='Window icon name')
+    info_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
     info_parser.add_argument('--expander-label', help='Expander label text')
     info_parser.add_argument('--expanded-text', help='Expanded text content')
 
@@ -873,6 +882,7 @@ if __name__ == "__main__":
     question_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     question_parser.add_argument('--icon-path', help='Window icon path')
     question_parser.add_argument('--icon-name', help='Window icon name')
+    question_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
     question_parser.add_argument('--expander-label', help='Expander label text')
     question_parser.add_argument('--expanded-text', help='Expanded text content')
 

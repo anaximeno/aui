@@ -797,6 +797,8 @@ def run(args: Namespace) -> None:
             message=args.text,
             title=args.title,
             header=args.header,
+            expanded_text=args.expanded_text,
+            expander_label=args.expander_label,
             icon_path=args.icon_path,
             icon_name=args.icon_name,
             width=args.width,
@@ -809,6 +811,8 @@ def run(args: Namespace) -> None:
         dialog = QuestionDialogWindow(
             message=args.text,
             title=args.title,
+            expanded_text=args.expanded_text,
+            expander_label=args.expander_label,
             icon_path=args.icon_path,
             icon_name=args.icon_name,
             header=args.header,
@@ -857,6 +861,8 @@ if __name__ == "__main__":
     info_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     info_parser.add_argument('--icon-path', help='Window icon path')
     info_parser.add_argument('--icon-name', help='Window icon name')
+    info_parser.add_argument('--expander-label', help='Expander label text')
+    info_parser.add_argument('--expanded-text', help='Expanded text content')
 
     # Question dialog window
     question_parser = subparsers.add_parser('question', help='Show question dialog')
@@ -867,6 +873,8 @@ if __name__ == "__main__":
     question_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     question_parser.add_argument('--icon-path', help='Window icon path')
     question_parser.add_argument('--icon-name', help='Window icon name')
+    question_parser.add_argument('--expander-label', help='Expander label text')
+    question_parser.add_argument('--expanded-text', help='Expanded text content')
 
     # Entry dialog window
     entry_parser = subparsers.add_parser('entry', help='Show text entry dialog')

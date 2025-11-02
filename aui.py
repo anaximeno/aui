@@ -101,6 +101,7 @@ class _ContentHeaderComponent(Gtk.Box):
         self,
         title: str,
         icon_path: str = None,
+        icon_name: str = None,
         spacing: int = 20,
         margin: tuple[int, int, int, int] = (10, 10, 10, 10),
     ) -> None:
@@ -111,9 +112,15 @@ class _ContentHeaderComponent(Gtk.Box):
         self.set_margin_start(margin[3])
 
         if icon_path is not None and os.path.exists(icon_path):
+            # TODO: don't hardcode icon size
             icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 48, 48)
-            self.icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
-            self.pack_start(self.icon_image, False, False, 0)
+            self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
+            self.pack_start(self._icon_image, False, False, 0)
+        elif icon_name is not None:
+            # TODO: don't hardcode icon size
+            icon_pixbuf = Gtk.IconTheme.get_default().load_icon(icon_name, 48, 0)
+            self._icon_image = Gtk.Image.new_from_pixbuf(icon_pixbuf)
+            self.pack_start(self._icon_image, False, False, 0)
 
         self.text_box = Gtk.VBox(spacing=5)
 
@@ -132,11 +139,16 @@ class _ContentHeaderComponent(Gtk.Box):
 class DialogWindow(Gtk.Window):
     dialog: Gtk.Dialog
 
-    def __init__(self, *args, icon_path: str = None, **kwargs) -> None:
+    def __init__(self, *args, icon_path: str = None, icon_name: str = None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._icon_path = icon_path
+        self._icon_name = icon_name
         if self._icon_path is not None and os.path.exists(self._icon_path):
             self._icon = GdkPixbuf.Pixbuf.new_from_file(self._icon_path)
+            self.set_icon(self._icon)
+        elif self._icon_name is not None:
+            # TODO: don't hardcode icon size
+            self._icon = Gtk.IconTheme.get_default().load_icon(icon_name, 64, 0)
             self.set_icon(self._icon)
 
     def run(self):
@@ -160,16 +172,18 @@ class _InfoDialog(Gtk.Dialog):
         expander_label: str = "",
         expanded_text: str = "",
         icon_path: str = None,
+        icon_name: str = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
         self.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self._box = Gtk.VBox(spacing=10)
 
-        if header is not None:
+        if header is not None or icon_path is not None or icon_name is not None:
             self._header = _ContentHeaderComponent(
                 title=header,
                 icon_path=icon_path,
+                icon_name=icon_name,
                 margin=(10, 10, 0, 10),
             )
             self._box.pack_start(self._header, False, False, 0)
@@ -213,13 +227,14 @@ class InfoDialogWindow(DialogWindow):
         title: str = None,
         header: str = None,
         icon_path: str = None,
+        icon_name: str = None,
         width: int = 360,
         height: int = 120,
         resizable: bool = False,
         expander_label: str = "",
         expanded_text: str = "",
     ) -> None:
-        super().__init__(title=title, icon_path=icon_path)
+        super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _InfoDialog(
             flags=0,
             transient_for=self,
@@ -232,6 +247,7 @@ class InfoDialogWindow(DialogWindow):
             expander_label=expander_label,
             expanded_text=expanded_text,
             icon_path=icon_path,
+            icon_name=icon_name,
         )
 
 
@@ -245,6 +261,7 @@ class _QuestionDialog(Gtk.Dialog):
         width: int = 360,
         height: int = 120,
         icon_path: str = None,
+        icon_name: str = None,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
@@ -257,10 +274,11 @@ class _QuestionDialog(Gtk.Dialog):
 
         self._content_area = self.get_content_area()
 
-        if header is not None:
+        if header is not None or icon_path is not None or icon_name is not None:
             self._header = _ContentHeaderComponent(
                 title=header,
                 icon_path=icon_path,
+                icon_name=icon_name,
                 margin=(10, 10, 0, 10),
             )
             self._content_area.add(self._header)
@@ -298,8 +316,9 @@ class QuestionDialogWindow(DialogWindow):
         width: int = 360,
         height: int = 120,
         icon_path: str = None,
+        icon_name: str = None,
     ) -> None:
-        super().__init__(title=title, icon_path=icon_path)
+        super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _QuestionDialog(
             flags=0,
             transient_for=self,
@@ -308,6 +327,8 @@ class QuestionDialogWindow(DialogWindow):
             header=header,
             width=width,
             height=height,
+            icon_path=icon_path,
+            icon_name=icon_name,
         )
 
     def run(self):
@@ -372,10 +393,11 @@ class EntryDialogWindow(DialogWindow):
         label: str = None,
         default_text: str = "",
         icon_path: str = None,
+        icon_name: str = None,
         width: int = 360,
         height: int = 120,
     ) -> None:
-        super().__init__(title=title, icon_path=icon_path)
+        super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _EntryDialog(
             flags=0,
             transient_for=self,
@@ -451,11 +473,12 @@ class ProgressbarDialogWindow(DialogWindow):
         expander_label: str = "",
         expanded_text: str = "",
         icon_path: str = None,
+        icon_name: str = None,
         width: int = 360,
         height: int = 120,
         on_cancel_callback: Callable = None,
     ) -> None:
-        super().__init__(title=title, icon_path=icon_path)
+        super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self._timeout_ms = timeout_ms
         self._timeout_callback = timeout_callback
         self._on_cancel_callback = on_cancel_callback
@@ -625,10 +648,11 @@ class RadioChoiceDialogWindow(DialogWindow):
         title: Optional[str] = None,
         label: Optional[str] = None,
         icon_path: Optional[str] = None,
+        icon_name: Optional[str] = None,
         width: int = 360,
         height: int = 120,
     ) -> None:
-        super().__init__(title=title, icon_path=icon_path)
+        super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _RadioChoiceDialog(
             flags=0,
             transient_for=self,
@@ -732,6 +756,7 @@ class ActionableDialogWindow(DialogWindow):
         width: int = 360,
         height: int = 120,
         icon_path: str = None,
+        icon_name: str = None,
         active_button_text: Optional[str] = None,
         **kwargs,
     ) -> None:
@@ -739,6 +764,7 @@ class ActionableDialogWindow(DialogWindow):
             *args,
             title=title,
             icon_path=icon_path,
+            icon_name=icon_name,
             **kwargs,
         )
         self.buttons = buttons
@@ -771,6 +797,7 @@ def run(args: Namespace) -> None:
             title=args.title,
             header=args.header,
             icon_path=args.icon_path,
+            icon_name=args.icon_name,
             width=args.width,
             height=args.height
         )
@@ -782,6 +809,7 @@ def run(args: Namespace) -> None:
             message=args.text,
             title=args.title,
             icon_path=args.icon_path,
+            icon_name=args.icon_name,
             header=args.header,
             width=args.width,
             height=args.height
@@ -799,6 +827,7 @@ def run(args: Namespace) -> None:
             label=args.text,
             default_text=args.entry_text,
             icon_path=args.icon_path,
+            icon_name=args.icon_name,
             width=args.width,
             height=args.height
         )
@@ -826,6 +855,7 @@ if __name__ == "__main__":
     info_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
     info_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     info_parser.add_argument('--icon-path', help='Window icon path')
+    info_parser.add_argument('--icon-name', help='Window icon name')
 
     # Question dialog window
     question_parser = subparsers.add_parser('question', help='Show question dialog')
@@ -835,6 +865,7 @@ if __name__ == "__main__":
     question_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
     question_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     question_parser.add_argument('--icon-path', help='Window icon path')
+    question_parser.add_argument('--icon-name', help='Window icon name')
 
     # Entry dialog window
     entry_parser = subparsers.add_parser('entry', help='Show text entry dialog')
@@ -844,6 +875,7 @@ if __name__ == "__main__":
     entry_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
     entry_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     entry_parser.add_argument('--icon-path', help='Window icon path')
+    entry_parser.add_argument('--icon-name', help='Window icon name')
 
     args = parser.parse_args()
 

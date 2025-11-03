@@ -84,8 +84,14 @@ class _ScrollableExpanderComponent(Gtk.Expander):
         expanded_text: str,
         min_content_height: int = 80,
         max_content_height: int = 150,
+        margin: tuple[int, int, int, int] = (0, 15, 10, 15),
     ) -> None:
         super().__init__(label=label)
+
+        self.set_margin_top(margin[0])
+        self.set_margin_end(margin[1])
+        self.set_margin_bottom(margin[2])
+        self.set_margin_start(margin[3])
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -233,10 +239,8 @@ class _InfoDialog(Gtk.Dialog):
             self.expander = _ScrollableExpanderComponent(
                 label=expander_label,
                 expanded_text=expanded_text,
+                margin=(0, 15, 10, 15),
             )
-            self.expander.set_margin_start(15)
-            self.expander.set_margin_end(15)
-            self.expander.set_margin_bottom(10)
             self._box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()
@@ -485,10 +489,8 @@ class _ProgressbarDialog(Gtk.Dialog):
             self.expander = _ScrollableExpanderComponent(
                 label=expander_label,
                 expanded_text=expanded_text,
+                margin=(0, 15, 10, 15),
             )
-            self.expander.set_margin_start(15)
-            self.expander.set_margin_end(15)
-            self.expander.set_margin_bottom(10)
             self.box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()

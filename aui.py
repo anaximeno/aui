@@ -1079,6 +1079,7 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
                             if 0 <= progress_value <= 100 and not args.pulse:
                                 progress_dialog.progressbar.set_fraction(progress_value / 100.0)
                             if progress_value >= 100:
+                                progress_dialog.progressbar.set_fraction(1.0)
                                 progress_dialog.complete(close=args.auto_close)
                         except ValueError:
                             # Ignore lines that cannot be parsed as integers

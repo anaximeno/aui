@@ -629,8 +629,12 @@ class _RadioChoiceDialog(Gtk.Dialog):
         radio_orientation=Gtk.Orientation.VERTICAL,
         title: Optional[str] = None,
         label: Optional[str] = None,
+        header: Optional[str] = None,
         width: int = 360,
         height: int = 120,
+        icon_path: Optional[str] = None,
+        icon_name: Optional[str] = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ):
         super().__init__(title=title, **kwargs)
@@ -641,6 +645,17 @@ class _RadioChoiceDialog(Gtk.Dialog):
             Gtk.STOCK_OK,
             Gtk.ResponseType.OK,
         )
+
+        self._content_area = self.get_content_area()
+
+        if header is not None or icon_path is not None or icon_name is not None:
+            self._header = _HeaderComponent(
+                title=header,
+                icon_path=icon_path if not hide_in_dialog_icon else None,
+                icon_name=icon_name if not hide_in_dialog_icon else None,
+                margin=(10, 10, 0, 10),
+            )
+            self._content_area.add(self._header)
 
         self.radio_buttons = radio_buttons
         self._radio_buttons_spacing = radio_spacing
@@ -684,7 +699,6 @@ class _RadioChoiceDialog(Gtk.Dialog):
                 if radio_button.id == self._default_active_button_id:
                     gtk_btn.set_active(True)
 
-        self._content_area = self.get_content_area()
         self._content_area.add(self._box)
 
         self.set_default_size(width, height)
@@ -704,8 +718,10 @@ class RadioChoiceDialogWindow(DialogWindow):
         radio_orientation=VERTICAL_RADIO,
         title: Optional[str] = None,
         label: Optional[str] = None,
+        header: Optional[str] = None,
         icon_path: Optional[str] = None,
         icon_name: Optional[str] = None,
+        hide_in_dialog_icon: bool = False,
         width: int = 360,
         height: int = 120,
     ) -> None:
@@ -719,8 +735,12 @@ class RadioChoiceDialogWindow(DialogWindow):
             radio_orientation=radio_orientation,
             title=title,
             label=label,
+            header=header,
             width=width,
             height=height,
+            icon_path=icon_path,
+            icon_name=icon_name,
+            hide_in_dialog_icon=hide_in_dialog_icon,
         )
 
     def run(self) -> str | None:
@@ -903,6 +923,37 @@ def run(args: Namespace) -> None:
         else:
             exit(1)
 
+    elif args.dialog_type == 'choice':
+        radio_buttons = []
+        if args.choice:
+            for choice_id, choice_text in args.choice:
+                radio_buttons.append(RadioChoiceButton(id=choice_id, label=choice_text))
+
+        orientation = RadioChoiceDialogWindow.VERTICAL_RADIO
+        if args.orientation == 'horizontal':
+            orientation = RadioChoiceDialogWindow.HORIZONTAL_RADIO
+
+        dialog = RadioChoiceDialogWindow(
+            radio_buttons=radio_buttons,
+            default_active_button_id=args.default_choice,
+            radio_orientation=orientation,
+            title=args.title,
+            label=args.text,
+            header=args.header,
+            icon_path=args.icon_path,
+            icon_name=args.icon_name,
+            hide_in_dialog_icon=args.hide_in_dialog_icon,
+            width=args.width,
+            height=args.height
+        )
+        result = dialog.run()
+        dialog.destroy()
+        if result is not None:
+            print(result)
+            exit(0)
+        else:
+            exit(1)
+
     else:
         parser.print_help()
 
@@ -946,6 +997,22 @@ if __name__ == "__main__":
     entry_parser.add_argument('--icon-path', help='Window icon path')
     entry_parser.add_argument('--icon-name', help='Window icon name')
     entry_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
+
+    # Radio choice dialog window
+    choice_parser = subparsers.add_parser('choice', help='Show choice dialog')
+    choice_parser.add_argument('--text', required=True, help='Dialog text')
+    choice_parser.add_argument('--header', help='Dialog header text')
+    choice_parser.add_argument('--title', help='Dialog window title')
+    choice_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
+    choice_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
+    choice_parser.add_argument('--icon-path', help='Window icon path')
+    choice_parser.add_argument('--icon-name', help='Window icon name')
+    choice_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
+    choice_parser.add_argument('--choice', action='append', nargs=2, metavar=('ID', 'TEXT'),
+                              help='Add a choice option (can be used multiple times). Format: ID TEXT')
+    choice_parser.add_argument('--default-choice', help='Default active choice ID')
+    choice_parser.add_argument('--orientation', choices=['vertical', 'horizontal'],
+                              default='vertical', help='Radio buttons orientation')
 
     #TODO: Add more dialog types to CLI
 

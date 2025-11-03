@@ -756,18 +756,13 @@ class RadioChoiceDialogWindow(DialogWindow):
 class ActionableButton:
     _id_counter = 0
 
-    def __init__(self, text: str, on_click_action: Callable) -> None:
-        self._id = self._get_id()
+    def __init__(self, id: int, text: str, on_click_action: Callable | None = None) -> None:
+        self._id = id
         self._on_click_action = on_click_action
         self._text = text
 
-    @classmethod
-    def _get_id(cls):
-        cls._id_counter += 1
-        return cls._id_counter
-
     @property
-    def id(self) -> str:
+    def id(self) -> int:
         return self._id
 
     @property
@@ -775,11 +770,12 @@ class ActionableButton:
         return self._text
 
     @property
-    def on_click_action(self) -> Callable:
+    def on_click_action(self) -> Callable | None:
         return self._on_click_action
 
     def trigger_on_click_action(self, *args, **kwargs) -> None:
-        self._on_click_action(*args, **kwargs)
+        if self._on_click_action is not None:
+            self._on_click_action(*args, **kwargs)
 
 
 class _ActionableDialog(Gtk.Dialog):
@@ -788,13 +784,28 @@ class _ActionableDialog(Gtk.Dialog):
         *args,
         title: str = None,
         message: str,
+        header: str = None,
         buttons: Iterable[ActionableButton],
         width: int,
         height: int,
-        active_button_text: Optional[str] = None,
+        default_button_id: Optional[int] = None,
+        icon_path: str = None,
+        icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(*args, title=title, **kwargs)
+        self._content_area = self.get_content_area()
+
+        if header is not None or icon_path is not None or icon_name is not None:
+            self._header = _HeaderComponent(
+                title=header,
+                icon_path=icon_path if not hide_in_dialog_icon else None,
+                icon_name=icon_name if not hide_in_dialog_icon else None,
+                margin=(10, 10, 0, 10),
+            )
+            self._content_area.add(self._header)
+
         self._box = Gtk.VBox(spacing=10)
         self._label = Gtk.Label()
         self._label.set_margin_top(20)
@@ -809,14 +820,13 @@ class _ActionableDialog(Gtk.Dialog):
         self._label.set_max_width_chars(width // 10)
         self._label.set_markup(message)
         self._box.pack_start(self._label, True, True, 0)
-        self._content_area = self.get_content_area()
         self._content_area.add(self._box)
         self._buttons = buttons
-        self._active_button_text = active_button_text
+        self._default_button_id = default_button_id
 
         for button in self._buttons:
             self.add_button(button.text, button.id)
-            if button.text == self._active_button_text:
+            if button.id == self._default_button_id:
                 self.set_default_response(button.id)
 
         self.set_default_size(width, height)
@@ -829,12 +839,14 @@ class ActionableDialogWindow(DialogWindow):
         *args,
         title: str,
         message: str,
+        header: str = None,
         buttons: Iterable[ActionableButton],
         width: int = 360,
         height: int = 120,
         icon_path: str = None,
         icon_name: str = None,
-        active_button_text: Optional[str] = None,
+        default_button_id: Optional[int] = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -850,18 +862,22 @@ class ActionableDialogWindow(DialogWindow):
             transient_for=self,
             title=title,
             message=message,
+            header=header,
             buttons=buttons,
             width=width,
             height=height,
-            active_button_text=active_button_text,
+            default_button_id=default_button_id,
+            icon_path=icon_path,
+            icon_name=icon_name,
+            hide_in_dialog_icon=hide_in_dialog_icon,
         )
 
-    def run(self) -> Optional[str]:
+    def run(self) -> Optional[int]:
         response = super().run()
         for button in self.buttons:
             if response == button.id:
                 button.trigger_on_click_action()
-                return button.text
+                return button.id
         return None
 
 # TODO: Add more dialog windows (e.g., FileChooserDialogWindow, ColorChooserDialogWindow, FormDialogWindow, etc.)
@@ -954,6 +970,35 @@ def run(args: Namespace) -> None:
         else:
             exit(1)
 
+    elif args.dialog_type == 'action':
+        actionable_buttons = []
+        if args.add_button:
+            for button_id, button_text in enumerate(args.add_button, 1):
+                actionable_buttons.append(ActionableButton(
+                    id=button_id,
+                    text=button_text,
+                ))
+
+        dialog = ActionableDialogWindow(
+            title=args.title,
+            message=args.text,
+            buttons=actionable_buttons,
+            default_button_id=args.default_button,
+            header=args.header,
+            icon_path=args.icon_path,
+            icon_name=args.icon_name,
+            hide_in_dialog_icon=args.hide_in_dialog_icon,
+            width=args.width,
+            height=args.height
+        )
+        result = dialog.run()
+        dialog.destroy()
+        if result is not None:
+            print(result)
+            exit(0)
+        else:
+            exit(1)
+
     else:
         parser.print_help()
 
@@ -1013,6 +1058,19 @@ if __name__ == "__main__":
     choice_parser.add_argument('--default-choice', help='Default active choice ID')
     choice_parser.add_argument('--orientation', choices=['vertical', 'horizontal'],
                               default='vertical', help='Radio buttons orientation')
+
+    # Action dialog window
+    action_parser = subparsers.add_parser('action', help='Show action dialog')
+    action_parser.add_argument('--text', required=True, help='Dialog text')
+    action_parser.add_argument('--header', help='Dialog header text')
+    action_parser.add_argument('--title', help='Dialog window title')
+    action_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
+    action_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
+    action_parser.add_argument('--icon-path', help='Window icon path')
+    action_parser.add_argument('--icon-name', help='Window icon name')
+    action_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
+    action_parser.add_argument('--add-button', action='append', help='Add a button option (can be used multiple times).')
+    action_parser.add_argument('--default-button', type=int, help='Default button id (starts from 1, based on order added).')
 
     #TODO: Add more dialog types to CLI
 

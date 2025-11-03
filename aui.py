@@ -165,10 +165,11 @@ class _HeaderComponent(Gtk.Box):
 
 
 class DialogWindow(Gtk.Window):
-    dialog: Gtk.Dialog
+    _dialog: Gtk.Dialog
 
     def __init__(self, *args, icon_path: str = None, icon_name: str = None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self._dialog = None
         self._icon_path = icon_path
         self._icon_name = icon_name
         self._icon = None
@@ -184,11 +185,22 @@ class DialogWindow(Gtk.Window):
         except Exception as e:
             log("aui.py: Failed to load icon for DialogWindow. Exception:", e)
 
+    @property
+    def dialog(self) -> Gtk.Dialog | None:
+        return self._dialog
+
+    @dialog.setter
+    def dialog(self, dialog: Gtk.Dialog) -> None:
+        self._dialog = dialog
+
     def run(self):
+        if self.dialog is None:
+            raise RuntimeError("DialogWindow: dialog property is not set.")
         return self.dialog.run()
 
     def destroy(self):
-        self.dialog.destroy()
+        if self.dialog is not None:
+            self.dialog.destroy()
         super().destroy()
 
 

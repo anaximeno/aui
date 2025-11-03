@@ -494,10 +494,14 @@ class _ProgressbarDialog(Gtk.Dialog):
         icon_path: str = None,
         icon_name: str = None,
         hide_in_dialog_icon: bool = False,
+        no_cancel: bool = False,
         **kwargs,
     ):
         super().__init__(title=title, **kwargs)
-        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+
+        if not no_cancel:
+            self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+
         self._content_area = self.get_content_area()
 
         if header is not None or icon_path is not None or icon_name is not None:
@@ -553,6 +557,7 @@ class ProgressbarDialogWindow(DialogWindow):
         width: int = 360,
         height: int = 120,
         on_cancel_callback: Callable = None,
+        no_cancel: bool = False,
         hide_in_dialog_icon: bool = False,
     ) -> None:
         super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
@@ -572,6 +577,7 @@ class ProgressbarDialogWindow(DialogWindow):
             icon_name=icon_name,
             icon_path=icon_path,
             hide_in_dialog_icon=hide_in_dialog_icon,
+            no_cancel=no_cancel,
         )
         self._timeout_id = None
         self._active = True
@@ -585,7 +591,7 @@ class ProgressbarDialogWindow(DialogWindow):
         if response_id != Gtk.ResponseType.CANCEL:
             return
 
-        log("ProgressbarDialogWindow: Cancelled by user.")
+        log("aui.py: ProgressbarDialogWindow: Cancelled by user.")
 
         self.stop(cancel=True)
         if self._on_cancel_callback:
@@ -1038,7 +1044,6 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
         def progress_timeout_callback(user_data, progress_dialog: ProgressbarDialogWindow):
             if args.pulse:
                 progress_dialog.progressbar.pulse()
-                return True
 
             try:
                 if select.select([sys.stdin], [], [], 0)[0]:
@@ -1048,10 +1053,10 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
                     elif line.isnumeric():
                         try:
                             progress_value = int(line)
-                            if 0 <= progress_value <= 100:
+                            if 0 <= progress_value <= 100 and not args.pulse:
                                 progress_dialog.progressbar.set_fraction(progress_value / 100.0)
-                                if progress_value == 100 and args.auto_close:
-                                    progress_dialog.stop()
+                            if progress_value == 100 and args.auto_close:
+                                progress_dialog.stop()
                         except ValueError:
                             # Ignore lines that cannot be parsed as integers
                             pass
@@ -1061,7 +1066,7 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
                         progress_dialog.set_expanded_text(line[1:].strip())
             except Exception as e:
                 # Ignore exceptions during progress input polling, but log for debugging.
-                print(f"Exception in progress_timeout_callback: {e}", file=sys.stderr)
+                log(f"aui.py: Exception in progress_timeout_callback: {e}")
 
             return True
 
@@ -1072,7 +1077,7 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
 
         dialog = ProgressbarDialogWindow(
             timeout_callback=progress_timeout_callback,
-            timeout_ms=args.timeout,
+            timeout_ms=args.timeout_ms,
             title=args.title,
             message=args.text,
             header=args.header,
@@ -1082,6 +1087,7 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
             width=args.width,
             height=args.height,
             on_cancel_callback=on_cancel_callback,
+            no_cancel=args.no_cancel,
             expander_label=args.expander_label,
             expanded_text=args.expanded_text,
         )
@@ -1176,8 +1182,9 @@ if __name__ == "__main__":
     progress_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
     progress_parser.add_argument('--progress', type=int, default=0, help='Progress percentage (0-100)')
     progress_parser.add_argument('--pulse', action='store_true', help='Enable pulsing animation')
-    progress_parser.add_argument('--timeout', type=int, default=50, help='Timeout in milliseconds for progress updates')
+    progress_parser.add_argument('--timeout-ms', type=int, default=50, help='Timeout in milliseconds for progress updates')
     progress_parser.add_argument('--auto-close', action='store_true', help='Auto close dialog when progress reaches 100%')
+    progress_parser.add_argument('--no-cancel', action='store_true', help='Disable cancel button')
     progress_parser.add_argument('--expander-label', help='Expander label text')
     progress_parser.add_argument('--expanded-text', help='Expanded text content')
 

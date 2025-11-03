@@ -25,7 +25,7 @@ Install dependencies via your package manager, e.g., on Ubuntu or Debian: `sudo 
 Run the tool using Python:
 
 ```bash
-python3 aui.py <dialog_type> [options]
+./aui.py <dialog_type> [options]
 ```
 
 Replace `<dialog_type>` with one of the supported types: `info`, `question`, `entry`, `choice`, `action`, or `progress`.
@@ -62,7 +62,7 @@ Refer to the source code in `aui.py` for class constructors and methods.
 Displays an informational message with optional expandable text.
 
 ```bash
-python3 aui.py info --title "Information" --text "This is an info message." --header "Header" --expander-label "Details" --expanded-text "Additional information here."
+./aui.py info --title "Information" --text "This is an info message." --header "Header" --expander-label "Details" --expanded-text "Additional information here."
 ```
 
 ### Question Dialog
@@ -70,7 +70,7 @@ python3 aui.py info --title "Information" --text "This is an info message." --he
 Asks a yes/no question. Exits with 0 for yes, 1 for no.
 
 ```bash
-python3 aui.py question --title "Confirm" --text "Do you want to proceed?" --header "Confirmation"
+./aui.py question --title "Confirm" --text "Do you want to proceed?" --header "Confirmation"
 ```
 
 ### Entry Dialog
@@ -78,7 +78,7 @@ python3 aui.py question --title "Confirm" --text "Do you want to proceed?" --hea
 Prompts for text input. Prints the entered text on success.
 
 ```bash
-python3 aui.py entry --title "Input" --text "Enter your name:" --entry-text "Default text" --header "User Input"
+./aui.py entry --title "Input" --text "Enter your name:" --entry-text "Default text" --header "User Input"
 ```
 
 ### Choice Dialog
@@ -86,7 +86,7 @@ python3 aui.py entry --title "Input" --text "Enter your name:" --entry-text "Def
 Presents radio button choices. Prints the selected choice ID (the order the choice was added, starting from 1).
 
 ```bash
-python3 aui.py choice --title "Select Option" --text "Choose one:" --add-choice "Option 1" --add-choice "Option 2" --default-choice 1 --orientation vertical
+./aui.py choice --title "Select Option" --text "Choose one:" --add-choice "Option 1" --add-choice "Option 2" --default-choice 1 --orientation vertical
 ```
 
 ### Action Dialog
@@ -94,7 +94,7 @@ python3 aui.py choice --title "Select Option" --text "Choose one:" --add-choice 
 Shows buttons with actions. Prints the button ID (the order the button was added, starting from 1) on click.
 
 ```bash
-python3 aui.py action --title "Actions" --text "What do you want to do?" --add-button "Save" --add-button "Cancel" --default-button 1
+./aui.py action --title "Actions" --text "What do you want to do?" --add-button "Save" --add-button "Cancel" --default-button 1
 ```
 
 ### Progress Dialog
@@ -103,7 +103,7 @@ Displays a progress bar that can be updated via stdin.
 
 ```bash
 for i in $(seq 0 100); do
-    sleep 0.1
+    sleep 0.05
     echo $i
     if [ $i -eq 25 ]; then
         echo "# Updated Message"
@@ -119,10 +119,10 @@ done | ./aui.py progress --title "Progress" \
                          --text "Processing..." \
                          --expander-label "Log" \
                          --expanded-text "Initial log." \
-                         --timeout-ms=250
+                         --timeout-ms=50
 ```
 
-For more details on options, run `python3 aui.py <dialog_type> --help`.
+For more details on options, run `./aui.py <dialog_type> --help`.
 
 ## Contributing
 

@@ -39,7 +39,7 @@ gi.require_version("GdkPixbuf", "2.0")
 gi.require_version("GLib", "2.0")
 from gi.repository import Gtk, GdkPixbuf, GLib
 from typing import Iterable, Callable, Optional, List
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 
 
 HOME = os.path.expanduser("~")
@@ -47,13 +47,13 @@ ICON_LOCATION = os.path.join(HOME, ".local/share/nemo/actions/%s/icon.png")
 
 
 def log(*messages: object) -> None:
-    """Logs a messages to the stderr.
+    """Logs a message to the stderr.
 
     #### Params:
 
     - `messages`: the messages to be logged
     """
-    print(*messages, file=os.sys.stderr)
+    print(*messages, file=sys.stderr)
 
 
 def get_action_icon_path(uuid: str, use_dev_icon: Optional[bool] = None) -> str:
@@ -919,7 +919,7 @@ class ActionableDialogWindow(DialogWindow):
 
 ## --- Command Line Interface ---
 
-def run(args: Namespace) -> None:
+def run(parser: ArgumentParser, args: Namespace) -> None:
     if args.dialog_type == 'info':
         dialog = InfoDialogWindow(
             message=args.text,
@@ -1053,13 +1053,15 @@ def run(args: Namespace) -> None:
                                 if progress_value == 100 and args.auto_close:
                                     progress_dialog.stop()
                         except ValueError:
+                            # Ignore lines that cannot be parsed as integers
                             pass
                     elif line.startswith("#"):
                         progress_dialog.progressbar.set_text(line[1:].strip())
                     elif line.startswith(">") and args.expander_label:
                         progress_dialog.set_expanded_text(line[1:].strip())
-            except:
-                pass
+            except Exception as e:
+                # Ignore exceptions during progress input polling, but log for debugging.
+                print(f"Exception in progress_timeout_callback: {e}", file=sys.stderr)
 
             return True
 
@@ -1183,4 +1185,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    run(args)
+    run(parser, args)

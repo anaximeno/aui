@@ -384,9 +384,13 @@ class _EntryDialog(Gtk.Dialog):
         self,
         title: str = None,
         label: str = None,
+        header: str = None,
         default_text: str = "",
         width: int = 360,
         height: int = 120,
+        icon_path: str = None,
+        icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ):
         super().__init__(title=title, **kwargs)
@@ -396,6 +400,18 @@ class _EntryDialog(Gtk.Dialog):
             Gtk.STOCK_OK,
             Gtk.ResponseType.OK,
         )
+
+        self._content_area = self.get_content_area()
+
+        if header is not None or icon_path is not None or icon_name is not None:
+            self._header = _HeaderComponent(
+                title=header,
+                icon_path=icon_path if not hide_in_dialog_icon else None,
+                icon_name=icon_name if not hide_in_dialog_icon else None,
+                margin=(10, 10, 0, 10),
+            )
+            self._content_area.add(self._header)
+
         self._box = Gtk.VBox(spacing=10)
         self._box.set_margin_top(10)
         self._box.set_margin_bottom(10)
@@ -414,7 +430,6 @@ class _EntryDialog(Gtk.Dialog):
         self.entry.set_activates_default(True)
         self._box.pack_start(self.entry, False, False, 0)
 
-        self._content_area = self.get_content_area()
         self._content_area.add(self._box)
         self.set_default_size(width, height)
         self.set_default_response(Gtk.ResponseType.OK)
@@ -427,10 +442,12 @@ class EntryDialogWindow(DialogWindow):
         title: str = None,
         label: str = None,
         default_text: str = "",
+        header: str = None,
         icon_path: str = None,
         icon_name: str = None,
         width: int = 360,
         height: int = 120,
+        hide_in_dialog_icon: bool = False,
     ) -> None:
         super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self.dialog = _EntryDialog(
@@ -439,8 +456,12 @@ class EntryDialogWindow(DialogWindow):
             title=title,
             label=label,
             default_text=default_text,
+            header=header,
             width=width,
             height=height,
+            icon_path=icon_path,
+            icon_name=icon_name,
+            hide_in_dialog_icon=hide_in_dialog_icon,
         )
         self.dialog.entry.connect("activate", self.on_entry_activate)
 
@@ -867,8 +888,10 @@ def run(args: Namespace) -> None:
             title=args.title,
             label=args.text,
             default_text=args.entry_text,
+            header=args.header,
             icon_path=args.icon_path,
             icon_name=args.icon_name,
+            hide_in_dialog_icon=args.hide_in_dialog_icon,
             width=args.width,
             height=args.height
         )
@@ -917,10 +940,12 @@ if __name__ == "__main__":
     entry_parser.add_argument('--text', help='Dialog label text')
     entry_parser.add_argument('--title', help='Dialog window title')
     entry_parser.add_argument('--entry-text', default='', help='Default entry text')
+    entry_parser.add_argument('--header', help='Dialog header text')
     entry_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
     entry_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
     entry_parser.add_argument('--icon-path', help='Window icon path')
     entry_parser.add_argument('--icon-name', help='Window icon name')
+    entry_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
 
     #TODO: Add more dialog types to CLI
 

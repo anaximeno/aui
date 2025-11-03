@@ -941,8 +941,8 @@ def run(args: Namespace) -> None:
 
     elif args.dialog_type == 'choice':
         radio_buttons = []
-        if args.choice:
-            for choice_id, choice_text in args.choice:
+        if args.add_choice:
+            for choice_id, choice_text in enumerate(args.add_choice, 1):
                 radio_buttons.append(RadioChoiceButton(id=choice_id, label=choice_text))
 
         orientation = RadioChoiceDialogWindow.VERTICAL_RADIO
@@ -1053,9 +1053,8 @@ if __name__ == "__main__":
     choice_parser.add_argument('--icon-path', help='Window icon path')
     choice_parser.add_argument('--icon-name', help='Window icon name')
     choice_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
-    choice_parser.add_argument('--choice', action='append', nargs=2, metavar=('ID', 'TEXT'),
-                              help='Add a choice option (can be used multiple times). Format: ID TEXT')
-    choice_parser.add_argument('--default-choice', help='Default active choice ID')
+    choice_parser.add_argument('--add-choice', action='append', help='Add a choice option (can be used multiple times).')
+    choice_parser.add_argument('--default-choice', type=int, help='Default active choice ID')
     choice_parser.add_argument('--orientation', choices=['vertical', 'horizontal'],
                               default='vertical', help='Radio buttons orientation')
 

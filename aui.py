@@ -183,7 +183,7 @@ class DialogWindow(Gtk.Window):
                 self.set_icon(self._icon)
             elif self._icon_name is not None:
                 # TODO: don't hardcode icon size
-                self._icon = Gtk.IconTheme.get_default().load_icon(icon_name, 64, 0)
+                self._icon = Gtk.IconTheme.get_default().load_icon(self._icon_name, 64, 0)
                 self.set_icon(self._icon)
         except Exception as e:
             log("aui.py: Failed to load icon for DialogWindow. Exception:", e)
@@ -821,8 +821,6 @@ class RadioChoiceDialogWindow(DialogWindow):
 
 
 class ActionableButton:
-    _id_counter = 0
-
     def __init__(self, id: int, text: str, on_click_action: Callable | None = None) -> None:
         self._id = id
         self._on_click_action = on_click_action

@@ -234,6 +234,9 @@ class _InfoDialog(Gtk.Dialog):
                 label=expander_label,
                 expanded_text=expanded_text,
             )
+            self.expander.set_margin_start(15)
+            self.expander.set_margin_end(15)
+            self.expander.set_margin_bottom(10)
             self._box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()
@@ -483,6 +486,9 @@ class _ProgressbarDialog(Gtk.Dialog):
                 label=expander_label,
                 expanded_text=expanded_text,
             )
+            self.expander.set_margin_start(15)
+            self.expander.set_margin_end(15)
+            self.expander.set_margin_bottom(10)
             self.box.pack_start(self.expander, False, False, 0)
 
         self._content_area = self.get_content_area()

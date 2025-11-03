@@ -546,9 +546,11 @@ class _ProgressbarDialog(Gtk.Dialog):
             )
             self.box.pack_start(self.expander, False, False, 0)
 
-        if not no_cancel:
-            self._action_button = Gtk.Button.new_from_stock(Gtk.STOCK_CANCEL)
-            self.add_action_widget(self._action_button, Gtk.ResponseType.CANCEL)
+        self._action_button = Gtk.Button.new_from_stock(Gtk.STOCK_CANCEL)
+        self.add_action_widget(self._action_button, Gtk.ResponseType.CANCEL)
+
+        if no_cancel:
+            self._action_button.set_sensitive(False)
 
         self._content_area.add(self.box)
         self.set_default_size(width, height)
@@ -622,6 +624,7 @@ class ProgressbarDialogWindow(DialogWindow):
 
     def complete(self, close=False) -> None:
         self.dialog._action_button.set_label(Gtk.STOCK_OK)
+        self.dialog._action_button.set_sensitive(True)
         self._completed = True
         self.stop(cancel=False)
         if close:

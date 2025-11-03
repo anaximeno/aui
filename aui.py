@@ -27,6 +27,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+__version__ = "0.8"
+
 import os
 import sys
 import gi
@@ -949,7 +951,10 @@ class ActionableDialogWindow(DialogWindow):
 ## --- Command Line Interface ---
 
 def run(parser: ArgumentParser, args: Namespace) -> None:
-    if args.dialog_type == 'info':
+    if args.version is True:
+        print(f"Action UI v{__version__}")
+
+    elif args.dialog_type == 'info':
         dialog = InfoDialogWindow(
             message=args.text,
             title=args.title,
@@ -1128,6 +1133,8 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Action UI - GTK Dialog Tool")
+    parser.add_argument('--version', help='show the version and exit', action='store_true')
+
     subparsers = parser.add_subparsers(dest='dialog_type', help='Dialog types')
 
     # Info dialog window

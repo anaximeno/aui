@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
@@ -813,6 +815,7 @@ class ActionableDialogWindow(DialogWindow):
                 return button.text
         return None
 
+# TODO: Add more dialog windows (e.g., FileChooserDialogWindow, ColorChooserDialogWindow, FormDialogWindow, etc.)
 
 ## --- Command Line Interface ---
 

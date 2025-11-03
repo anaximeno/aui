@@ -1176,7 +1176,7 @@ if __name__ == "__main__":
     choice_parser.add_argument('--icon-path', help='Window icon path')
     choice_parser.add_argument('--icon-name', help='Window icon name')
     choice_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
-    choice_parser.add_argument('--add-choice', action='append', help='Add a choice option (can be used multiple times).')
+    choice_parser.add_argument('--add-choice', action='append', help='Add a choice option (can be used multiple times).', required=True)
     choice_parser.add_argument('--default-choice', type=int, help='Default active choice ID')
     choice_parser.add_argument('--orientation', choices=['vertical', 'horizontal'],
                               default='vertical', help='Radio buttons orientation')
@@ -1191,7 +1191,7 @@ if __name__ == "__main__":
     action_parser.add_argument('--icon-path', help='Window icon path')
     action_parser.add_argument('--icon-name', help='Window icon name')
     action_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
-    action_parser.add_argument('--add-button', action='append', help='Add a button option (can be used multiple times).')
+    action_parser.add_argument('--add-button', action='append', help='Add a button option (can be used multiple times).', required=True)
     action_parser.add_argument('--default-button', type=int, help='Default button id (starts from 1, based on order added).')
 
     # Progress bar dialog window

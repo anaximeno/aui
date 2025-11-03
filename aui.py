@@ -28,9 +28,11 @@ SOFTWARE.
 """
 
 import os
+import sys
 import gi
 
 import argparse
+import select
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
@@ -86,7 +88,7 @@ class _ScrollableExpanderComponent(Gtk.Expander):
         max_content_height: int = 150,
         margin: tuple[int, int, int, int] = (0, 15, 10, 15),
     ) -> None:
-        super().__init__(label=label)
+        super().__init__(label=label if label else "")
 
         self.set_margin_top(margin[0])
         self.set_margin_end(margin[1])
@@ -99,7 +101,7 @@ class _ScrollableExpanderComponent(Gtk.Expander):
         scrolled.set_max_content_height(max_content_height)
 
         self.expanded_text_label = Gtk.Label()
-        self.expanded_text_label.set_markup(expanded_text)
+        self.expanded_text_label.set_markup(expanded_text if expanded_text else "")
         self.expanded_text_label.set_halign(Gtk.Align.START)
         self.expanded_text_label.set_valign(Gtk.Align.START)
         self.expanded_text_label.set_margin_top(5)
@@ -112,6 +114,9 @@ class _ScrollableExpanderComponent(Gtk.Expander):
 
         scrolled.add(self.expanded_text_label)
         self.add(scrolled)
+
+    def set_expanded_text(self, text: str) -> None:
+        self.expanded_text_label.set_markup(text)
 
 
 class _HeaderComponent(Gtk.Box):
@@ -481,14 +486,29 @@ class _ProgressbarDialog(Gtk.Dialog):
         self,
         title: str = None,
         message: str = None,
+        header: str = None,
         expander_label: str = "",
         expanded_text: str = "",
         width: int = 360,
         height: int = 120,
+        icon_path: str = None,
+        icon_name: str = None,
+        hide_in_dialog_icon: bool = False,
         **kwargs,
     ):
         super().__init__(title=title, **kwargs)
         self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self._content_area = self.get_content_area()
+
+        if header is not None or icon_path is not None or icon_name is not None:
+            self._header = _HeaderComponent(
+                title=header,
+                icon_path=icon_path if not hide_in_dialog_icon else None,
+                icon_name=icon_name if not hide_in_dialog_icon else None,
+                margin=(10, 10, 0, 10),
+            )
+            self._content_area.add(self._header)
+
         self.box = Gtk.VBox(spacing=12)
         self.box.set_margin_top(15)
         self.box.set_margin_bottom(15)
@@ -505,16 +525,14 @@ class _ProgressbarDialog(Gtk.Dialog):
         self.box.pack_start(self.progressbar, False, False, 0)
 
         self.expander = None
-        self.expanded_text_label = None
         if expander_label:
             self.expander = _ScrollableExpanderComponent(
                 label=expander_label,
                 expanded_text=expanded_text,
-                margin=(0, 15, 10, 15),
+                margin=(0, 15, 10, 0),
             )
             self.box.pack_start(self.expander, False, False, 0)
 
-        self._content_area = self.get_content_area()
         self._content_area.add(self.box)
         self.set_default_size(width, height)
         self.show_all()
@@ -527,6 +545,7 @@ class ProgressbarDialogWindow(DialogWindow):
         timeout_ms: int = 50,
         title: str = None,
         message: str = None,
+        header: str = None,
         expander_label: str = "",
         expanded_text: str = "",
         icon_path: str = None,
@@ -534,6 +553,7 @@ class ProgressbarDialogWindow(DialogWindow):
         width: int = 360,
         height: int = 120,
         on_cancel_callback: Callable = None,
+        hide_in_dialog_icon: bool = False,
     ) -> None:
         super().__init__(title=title, icon_path=icon_path, icon_name=icon_name)
         self._timeout_ms = timeout_ms
@@ -544,10 +564,14 @@ class ProgressbarDialogWindow(DialogWindow):
             transient_for=self,
             title=title,
             message=message,
+            header=header,
             width=width,
             height=height,
             expander_label=expander_label,
             expanded_text=expanded_text,
+            icon_name=icon_name,
+            icon_path=icon_path,
+            hide_in_dialog_icon=hide_in_dialog_icon,
         )
         self._timeout_id = None
         self._active = True
@@ -558,7 +582,12 @@ class ProgressbarDialogWindow(DialogWindow):
         return self.dialog.progressbar
 
     def _on_cancel(self, dialog, response_id) -> None:
-        self.stop()
+        if response_id != Gtk.ResponseType.CANCEL:
+            return
+
+        log("ProgressbarDialogWindow: Cancelled by user.")
+
+        self.stop(cancel=True)
         if self._on_cancel_callback:
             self._on_cancel_callback()
 
@@ -577,19 +606,25 @@ class ProgressbarDialogWindow(DialogWindow):
             self._active = res if res is not None else True
         return self._active
 
-    def stop(self):
+    def stop(self, cancel=False) -> None:
+        if not self._active:
+            return
+
         self._active = False
         if self._timeout_id is not None:
             GLib.source_remove(self._timeout_id)
             self._timeout_id = None
+
+        if not cancel:
+            self.dialog.response(Gtk.ResponseType.OK)
 
     def destroy(self):
         self.stop()
         super().destroy()
 
     def set_expanded_text(self, text: str):
-        if self.dialog.expanded_text_label is not None:
-            self.dialog.expanded_text_label.set_markup(text)
+        if self.dialog.expander is not None:
+            self.dialog.expander.set_expanded_text(text)
 
 
 class RadioChoiceButton:
@@ -999,6 +1034,62 @@ def run(args: Namespace) -> None:
         else:
             exit(1)
 
+    elif args.dialog_type == 'progress':
+        def progress_timeout_callback(user_data, progress_dialog: ProgressbarDialogWindow):
+            if args.pulse:
+                progress_dialog.progressbar.pulse()
+                return True
+
+            try:
+                if select.select([sys.stdin], [], [], 0)[0]:
+                    line = sys.stdin.readline().strip()
+                    if not line:
+                        return True
+                    elif line.isnumeric():
+                        try:
+                            progress_value = int(line)
+                            if 0 <= progress_value <= 100:
+                                progress_dialog.progressbar.set_fraction(progress_value / 100.0)
+                                if progress_value == 100 and args.auto_close:
+                                    progress_dialog.stop()
+                        except ValueError:
+                            pass
+                    elif line.startswith("#"):
+                        progress_dialog.progressbar.set_text(line[1:].strip())
+                    elif line.startswith(">") and args.expander_label:
+                        progress_dialog.set_expanded_text(line[1:].strip())
+            except:
+                pass
+
+            return True
+
+        cancelled = False
+        def on_cancel_callback():
+            nonlocal cancelled
+            cancelled = True
+
+        dialog = ProgressbarDialogWindow(
+            timeout_callback=progress_timeout_callback,
+            timeout_ms=args.timeout,
+            title=args.title,
+            message=args.text,
+            header=args.header,
+            icon_path=args.icon_path,
+            icon_name=args.icon_name,
+            hide_in_dialog_icon=args.hide_in_dialog_icon,
+            width=args.width,
+            height=args.height,
+            on_cancel_callback=on_cancel_callback,
+            expander_label=args.expander_label,
+            expanded_text=args.expanded_text,
+        )
+        dialog.run()
+        dialog.destroy()
+        if cancelled:
+            exit(1)
+        else:
+            exit(0)
+
     else:
         parser.print_help()
 
@@ -1070,6 +1161,23 @@ if __name__ == "__main__":
     action_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
     action_parser.add_argument('--add-button', action='append', help='Add a button option (can be used multiple times).')
     action_parser.add_argument('--default-button', type=int, help='Default button id (starts from 1, based on order added).')
+
+    # Progress bar dialog window
+    progress_parser = subparsers.add_parser('progress', help='Show progress dialog')
+    progress_parser.add_argument('--text', required=True, help='Dialog text')
+    progress_parser.add_argument('--header', help='Dialog header text')
+    progress_parser.add_argument('--title', help='Dialog window title')
+    progress_parser.add_argument('--width', type=int, default=360, help='Dialog window width')
+    progress_parser.add_argument('--height', type=int, default=120, help='Dialog window height')
+    progress_parser.add_argument('--icon-path', help='Window icon path')
+    progress_parser.add_argument('--icon-name', help='Window icon name')
+    progress_parser.add_argument('--hide-in-dialog-icon', action='store_true', help='Hide icon in dialog header')
+    progress_parser.add_argument('--progress', type=int, default=0, help='Progress percentage (0-100)')
+    progress_parser.add_argument('--pulse', action='store_true', help='Enable pulsing animation')
+    progress_parser.add_argument('--timeout', type=int, default=50, help='Timeout in milliseconds for progress updates')
+    progress_parser.add_argument('--auto-close', action='store_true', help='Auto close dialog when progress reaches 100%')
+    progress_parser.add_argument('--expander-label', help='Expander label text')
+    progress_parser.add_argument('--expanded-text', help='Expanded text content')
 
     #TODO: Add more dialog types to CLI
 

@@ -1082,14 +1082,14 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
                                 progress_dialog.progressbar.set_fraction(1.0)
                                 progress_dialog.complete(close=args.auto_close)
                         except ValueError:
-                            # Ignore lines that cannot be parsed as integers
+                            # NOTE: Ignore lines that cannot be parsed as integers
                             pass
                     elif line.startswith("#"):
                         progress_dialog.progressbar.set_text(line[1:].strip())
                     elif line.startswith(">") and args.expander_label:
                         progress_dialog.set_expanded_text(line[1:].strip())
             except Exception as e:
-                # Ignore exceptions during progress input polling, but log for debugging.
+                # NOTE: Ignore exceptions during progress input polling, but log for debugging.
                 log(f"aui.py: Exception in progress_timeout_callback: {e}")
 
             return True

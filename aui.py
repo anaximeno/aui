@@ -511,9 +511,6 @@ class _ProgressbarDialog(Gtk.Dialog):
     ):
         super().__init__(title=title, **kwargs)
 
-        if not no_cancel:
-            self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-
         self._content_area = self.get_content_area()
 
         if header is not None or icon_path is not None or icon_name is not None:
@@ -548,6 +545,10 @@ class _ProgressbarDialog(Gtk.Dialog):
                 margin=(0, 15, 10, 0),
             )
             self.box.pack_start(self.expander, False, False, 0)
+
+        if not no_cancel:
+            self._action_button = Gtk.Button.new_from_stock(Gtk.STOCK_CANCEL)
+            self.add_action_widget(self._action_button, Gtk.ResponseType.CANCEL)
 
         self._content_area.add(self.box)
         self.set_default_size(width, height)
@@ -593,36 +594,46 @@ class ProgressbarDialogWindow(DialogWindow):
         )
         self._timeout_id = None
         self._active = True
-        self.dialog.connect("response", self._on_cancel)
+        self._completed = False
+        self.dialog.connect("response", self._on_response)
 
     @property
     def progressbar(self) -> Gtk.ProgressBar:
         return self.dialog.progressbar
-
-    def _on_cancel(self, dialog, response_id) -> None:
-        if response_id != Gtk.ResponseType.CANCEL:
-            return
-
-        log("aui.py: ProgressbarDialogWindow: Cancelled by user.")
-
-        self.stop(cancel=True)
-        if self._on_cancel_callback:
-            self._on_cancel_callback()
-
-    def run(self):
-        self._active = True
-        self._timeout_id = GLib.timeout_add(
-            self._timeout_ms,
-            self._handle_on_timeout,
-            None,
-        )
-        return super().run()
 
     def _handle_on_timeout(self, user_data) -> bool:
         if self._active:
             res = self._timeout_callback(user_data, self)
             self._active = res if res is not None else True
         return self._active
+
+    def _on_response(self, dialog, response_id):
+        if response_id == Gtk.ResponseType.CANCEL and not self._completed:
+            self.cancel(close=False)
+
+    def run(self) -> bool:
+        self._active = True
+        self._timeout_id = GLib.timeout_add(
+            self._timeout_ms,
+            self._handle_on_timeout,
+            None,
+        )
+        return super().run() == Gtk.ResponseType.OK
+
+    def complete(self, close=False) -> None:
+        self.dialog._action_button.set_label(Gtk.STOCK_OK)
+        self._completed = True
+        self.stop(cancel=False)
+        if close:
+            self.dialog.response(Gtk.ResponseType.OK)
+
+    def cancel(self, close=True) -> None:
+        self.stop(cancel=True)
+        if self._on_cancel_callback:
+            self._on_cancel_callback()
+        if close:
+            self.dialog.response(Gtk.ResponseType.CANCEL)
+        log("aui.py: ProgressbarDialogWindow: Cancelled")
 
     def stop(self, cancel=False) -> None:
         if not self._active:
@@ -632,9 +643,6 @@ class ProgressbarDialogWindow(DialogWindow):
         if self._timeout_id is not None:
             GLib.source_remove(self._timeout_id)
             self._timeout_id = None
-
-        if not cancel:
-            self.dialog.response(Gtk.ResponseType.OK)
 
     def destroy(self):
         self.stop()
@@ -1067,8 +1075,8 @@ def run(parser: ArgumentParser, args: Namespace) -> None:
                             progress_value = int(line)
                             if 0 <= progress_value <= 100 and not args.pulse:
                                 progress_dialog.progressbar.set_fraction(progress_value / 100.0)
-                            if progress_value == 100 and args.auto_close:
-                                progress_dialog.stop()
+                            if progress_value >= 100:
+                                progress_dialog.complete(close=args.auto_close)
                         except ValueError:
                             # Ignore lines that cannot be parsed as integers
                             pass

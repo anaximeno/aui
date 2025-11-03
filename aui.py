@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Action UI - Basic GTK Based UI Toolkit for Nemo Actions.
+"""Action UI - GTK Based UI Toolkit for Nemo Actions.
 @Author: Anaxímeno Brito <anaximenobrito@gmail.com>
 @Url: https://github.com/anaximeno/aui
 @Version: 0.8
@@ -28,6 +28,7 @@ SOFTWARE.
 """
 
 __version__ = "0.8"
+
 
 import os
 import sys

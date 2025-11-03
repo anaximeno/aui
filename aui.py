@@ -601,7 +601,7 @@ class ProgressbarDialogWindow(DialogWindow):
     def progressbar(self) -> Gtk.ProgressBar:
         return self.dialog.progressbar
 
-    def _handle_on_timeout(self, user_data) -> bool:
+    def _on_timeout(self, user_data) -> bool:
         if self._active:
             res = self._timeout_callback(user_data, self)
             self._active = res if res is not None else True
@@ -615,7 +615,7 @@ class ProgressbarDialogWindow(DialogWindow):
         self._active = True
         self._timeout_id = GLib.timeout_add(
             self._timeout_ms,
-            self._handle_on_timeout,
+            self._on_timeout,
             None,
         )
         return super().run() == Gtk.ResponseType.OK

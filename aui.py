@@ -108,7 +108,7 @@ class _ScrollableExpanderComponent(Gtk.Expander):
         self.add(scrolled)
 
 
-class _ContentHeaderComponent(Gtk.Box):
+class _HeaderComponent(Gtk.Box):
     def __init__(
         self,
         title: str,
@@ -203,7 +203,7 @@ class _InfoDialog(Gtk.Dialog):
         self._box = Gtk.VBox(spacing=10)
 
         if header is not None or icon_path is not None or icon_name is not None:
-            self._header = _ContentHeaderComponent(
+            self._header = _HeaderComponent(
                 title=header,
                 icon_path=icon_path if not hide_in_dialog_icon else None,
                 icon_name=icon_name if not hide_in_dialog_icon else None,
@@ -304,7 +304,7 @@ class _QuestionDialog(Gtk.Dialog):
         self._content_area = self.get_content_area()
 
         if header is not None or icon_path is not None or icon_name is not None:
-            self._header = _ContentHeaderComponent(
+            self._header = _HeaderComponent(
                 title=header,
                 icon_path=icon_path if not hide_in_dialog_icon else None,
                 icon_name=icon_name if not hide_in_dialog_icon else None,

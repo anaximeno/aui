@@ -102,7 +102,24 @@ python3 aui.py action --title "Actions" --text "What do you want to do?" --add-b
 Displays a progress bar that can be updated via stdin.
 
 ```bash
-echo "50\n # Updated Message\n > New log entry\n # Finished\n 100" | python3 aui.py progress --title "Progress" --text "Processing..." --expander-label "Log" --expanded-text "Initial log." --timeout-ms=250
+for i in $(seq 0 100); do
+    sleep 0.1
+    echo $i
+    if [ $i -eq 25 ]; then
+        echo "# Updated Message"
+    elif [ $i -eq 60 ]; then
+        echo "> New log entry"
+    elif [ $i -eq 85 ]; then
+        echo "# Closing Message"
+    elif [ $i -eq 100 ]; then
+        echo "# Completed"
+    fi
+    sleep 0.
+done | ./aui.py progress --title "Progress" \
+                         --text "Processing..." \
+                         --expander-label "Log" \
+                         --expanded-text "Initial log." \
+                         --timeout-ms=250
 ```
 
 For more details on options, run `python3 aui.py <dialog_type> --help`.

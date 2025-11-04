@@ -111,10 +111,9 @@ for i in $(seq 0 100); do
         echo "> New log entry"
     elif [ $i -eq 85 ]; then
         echo "# Closing Message"
-    elif [ $i -eq 100 ]; then
+    elif [ $i -eq 99 ]; then
         echo "# Completed"
     fi
-    sleep 0.
 done | ./aui.py progress --title "Progress" \
                          --text "Processing..." \
                          --expander-label "Log" \
